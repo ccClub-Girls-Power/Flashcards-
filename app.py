@@ -2270,6 +2270,7 @@ flashcard/flash card"""
         user_states[user_id] = 'waiting_for_choosing_mode'
         user_decks_name[user_id] = card_box_name
 
+
     # 選擇學習模式__一般查看
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "查看卡片":
         deck_name = user_decks_name[user_id].split('「')[1].split('」')[0]
@@ -2309,19 +2310,25 @@ flashcard/flash card"""
                     [current_time_list, word_list, pos_list, chinese_list, example_list, note_list]):
                 columns_list.append(name)
                 data_lists.append(data_list)
-
+            # 在程式碼中添加 show_limit 和 start_index 變數
+            show_limit = 10
+            start_index = 0
             # 只有在 data_lists 長度為 6 時，才生成 Flex Message
             if len(data_lists) == 6:
                 # 動態生成 Flex Message JSON
                 flex_messages = [generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
                                                        note_list) for current_time, word_name, pos_list, chinese_list,
                                  example_list, note_list in
-                                 zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
-                                     data_lists[4], data_lists[5])]
+                                 zip(data_lists[0][start_index:start_index + show_limit],
+                                     data_lists[1][start_index:start_index + show_limit],
+                                     data_lists[2][start_index:start_index + show_limit],
+                                     data_lists[3][start_index:start_index + show_limit],
+                                     data_lists[4][start_index:start_index + show_limit],
+                                     data_lists[5][start_index:start_index + show_limit])]
 
             user_card_index[user_id] = 0
-            if len(flex_messages) <= 10:
-                # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+            if len(flex_messages) <= show_limit:
+                # 少於等於 show_limit 條 Bubble Messages，使用 Carousel Flex Message
                 carousel_flex_message = FlexSendMessage(
                     alt_text="Carousel Flex Message",
                     contents={
@@ -2330,16 +2337,49 @@ flashcard/flash card"""
                     }
                 )
             else:
-                # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
+                # 多於 show_limit 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
                 carousel_flex_message = FlexSendMessage(
                     alt_text="Carousel Flex Message",
                     contents={
                         "type": "carousel",
-                        "contents": flex_messages[:9] + [generate_see_more_bubble()]
+                        "contents": flex_messages[:show_limit - 1] + [generate_see_more_bubble()]
                     }
                 )
             line_bot_api.reply_message(event.reply_token, carousel_flex_message)
             user_flex_messages[user_id] = flex_messages
+
+    if user_input == "See more cards":
+        start_index += show_limit
+        remaining_flex_messages = [
+            generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list, note_list)
+            for current_time, word_name, pos_list, chinese_list, example_list, note_list
+            in zip(data_lists[0][start_index:start_index + show_limit],
+                   data_lists[1][start_index:start_index + show_limit],
+                   data_lists[2][start_index:start_index + show_limit],
+                   data_lists[3][start_index:start_index + show_limit],
+                   data_lists[4][start_index:start_index + show_limit],
+                   data_lists[5][start_index:start_index + show_limit])]
+        flex_messages += remaining_flex_messages
+
+        # 根據卡片數量選擇使用 Carousel 或單一 Bubble Flex Message
+        if len(flex_messages) <= show_limit:
+            carousel_flex_message = FlexSendMessage(
+                alt_text="Carousel Flex Message",
+                contents={
+                    "type": "carousel",
+                    "contents": flex_messages
+                }
+            )
+        else:
+            carousel_flex_message = FlexSendMessage(
+                alt_text="Carousel Flex Message",
+                contents={
+                    "type": "carousel",
+                    "contents": flex_messages[:show_limit - 1] + [generate_see_more_bubble()]
+                }
+            )
+        line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+        user_flex_messages[user_id] = flex_messages
 
 
     else:
