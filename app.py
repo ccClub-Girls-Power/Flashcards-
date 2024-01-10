@@ -473,9 +473,9 @@ def generate_see_more_bubble():
                     "flex": 1,
                     "gravity": "center",
                     "action": {
-                        "type": "uri",
+                        "type": "message",
                         "label": "See more",
-                        "uri": "https://linecorp.com"
+                        "uri": "See more cards"
                     }
                 }
             ]
@@ -2376,7 +2376,6 @@ flashcard/flash card"""
                 reply_text = "已經沒有更多卡片了。"
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
                 user_card_pointers.pop(user_id, None)  # 可以根據需要清除指標
-
 
     else:
         # 其他操作失敗的情況
