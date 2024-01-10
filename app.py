@@ -2313,70 +2313,23 @@ flashcard/flash card"""
             # 只有在 data_lists 長度為 6 時，才生成 Flex Message
             if len(data_lists) == 6:
                 # 動態生成 Flex Message JSON
-                flex_messages = [generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
-                                                       note_list) for current_time, word_name, pos_list, chinese_list,
-                                 example_list, note_list in
-                                 zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
-                                     data_lists[4], data_lists[5])]
-
-            if len(flex_messages) <= 10:
-                # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-                carousel_flex_message = FlexSendMessage(
-                    alt_text="Carousel Flex Message",
-                    contents={
-                        "type": "carousel",
-                        "contents": flex_messages
-                    }
-                )
-            else:
-                # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
-                carousel_flex_message = FlexSendMessage(
-                    alt_text="Carousel Flex Message",
-                    contents={
-                        "type": "carousel",
-                        "contents": flex_messages[:9] + [generate_see_more_bubble()]
-                    }
-                )
-            line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-            user_card_pointers[user_id] = 0
-            user_flex_messages[user_id] = flex_messages
-    #
-    # # 點擊查看更多卡片
-    # elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "See more cards":
-    #     if user_id in user_card_pointers:
-    #         pointer = user_card_pointers[user_id]
-    #         remaining_cards = len(user_flex_messages[user_id]) - pointer
-    #
-    #         if remaining_cards > 0:
-    #             # 提供下一組卡片
-    #             if remaining_cards <= 10:
-    #                 # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-    #                 carousel_flex_message = FlexSendMessage(
-    #                     alt_text="Carousel Flex Message",
-    #                     contents={
-    #                         "type": "carousel",
-    #                         "contents": user_flex_messages[user_id][pointer:]
-    #                     }
-    #                 )
-    #             else:
-    #                 # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
-    #                 carousel_flex_message = FlexSendMessage(
-    #                     alt_text="Carousel Flex Message",
-    #                     contents={
-    #                         "type": "carousel",
-    #                         "contents": user_flex_messages[user_id][pointer:pointer + 9] + [generate_see_more_bubble()]
-    #                     }
-    #                 )
-    #
-    #             user_card_pointers[user_id] += min(10, remaining_cards)  # 更新指標
-    #
-    #             line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-    #         else:
-    #             # 已經沒有更多卡片了，提供相應提示
-    #             reply_text = "已經沒有更多卡片了。"
-    #             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
-    #             user_card_pointers.pop(user_id, None)  # 可以根據需要清除指標
-
+                flex_messages = []
+                for current_time, word_name, pos_list, chinese_list, example_list, note_list in zip(data_lists[0],
+                                                                                                    data_lists[1],
+                                                                                                    data_lists[2],
+                                                                                                    data_lists[3],
+                                                                                                    data_lists[4],
+                                                                                                    data_lists[5]):
+                    flex_message = generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
+                                                         note_list)
+                    flex_messages.append(flex_message)
+                # 將多條 Flex Message 放入 messages 參數中
+                flex_reply_messages = [FlexSendMessage(alt_text="單字卡", contents=message) for message in
+                                       flex_messages]
+                # 使用 reply_message 發送多條 Flex Message
+                line_bot_api.reply_message(event.reply_token, flex_reply_messages)
+                # 清理用戶狀態
+                user_states.pop(user_id, None)
 
     else:
         # 其他操作失敗的情況
