@@ -475,7 +475,7 @@ def generate_see_more_bubble():
                     "action": {
                         "type": "message",
                         "label": "See more",
-                        "uri": "See more cards"
+                        "text": "See more cards"
                     }
                 }
             ]
