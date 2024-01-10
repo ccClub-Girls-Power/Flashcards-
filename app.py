@@ -459,7 +459,6 @@ def generate_flex_message(current_time, word_name, pos_list, chinese_list, examp
         }
     }
 
-# 函數：查看更多按鈕
 def generate_see_more_bubble():
     return {
         "type": "bubble",
@@ -473,15 +472,14 @@ def generate_see_more_bubble():
                     "flex": 1,
                     "gravity": "center",
                     "action": {
-                        "type": "message",
-                        "label": "查看更多",
-                        "text": "查看更多"
+                        "type": "uri",
+                        "label": "See more",
+                        "uri": "https://linecorp.com"
                     }
                 }
             ]
         }
     }
-
 
 # 使用者狀態、卡片盒字典、front.back_input
 user_states = {}
@@ -495,7 +493,6 @@ user_insert_word_content = {}
 user_states_content = {}
 user_searching_words = {}
 user_decks_name = {}
-user_card_index = {}
 
 
 # 處理訊息事件的函數
@@ -2272,7 +2269,6 @@ flashcard/flash card"""
 
     # 選擇學習模式__一般查看
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "查看卡片":
-        user_card_index[user_id] = 0
         deck_name = user_decks_name[user_id].split('「')[1].split('」')[0]
         # 提取「」以前的部分
         sheet_type = user_decks_name[user_id].split('「')[0]
@@ -2320,42 +2316,26 @@ flashcard/flash card"""
                                  zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
                                      data_lists[4], data_lists[5])]
 
-                # 取得用戶已經查看到的卡片索引
-                card_index = user_card_index[user_id]
-                card_display_count = 10
-                if len(flex_messages) > card_index:
-                    # 如果還有未顯示的卡片
-                    if len(flex_messages) - card_index <= card_display_count:
-                        # 少於等於每次顯示的卡片數，使用 Carousel Flex Message
-                        carousel_flex_message = FlexSendMessage(
-                            alt_text="Carousel Flex Message",
-                            contents={
-                                "type": "carousel",
-                                "contents": flex_messages[card_index:]
-                            }
-                        )
-                    else:
-                        # 多於每次顯示的卡片數，使用 Carousel Flex Message 加上 See More 按鈕
-                        carousel_flex_message = FlexSendMessage(
-                            alt_text="Carousel Flex Message",
-                            contents={
-                                "type": "carousel",
-                                "contents": flex_messages[card_index:card_index + card_display_count - 1] + [
-                                    generate_see_more_bubble()]
-                            }
-                        )
-
-                    # 更新用戶已經查看到的卡片索引
-                    user_card_index[user_id] += card_display_count
-
-                    line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                else:
-                    # 如果已經查看完所有卡片，結束
-                    line_bot_api.reply_message(event.reply_token, FlexSendMessage(
-                        alt_text="No more cards to show.",
-                        contents={"type": "text", "text": "No more cards to show."}
-                    ))
-
+            if len(flex_messages) <= 10:
+                # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+                carousel_flex_message = FlexSendMessage(
+                    alt_text="Carousel Flex Message",
+                    contents={
+                        "type": "carousel",
+                        "contents": flex_messages
+                    }
+                )
+            else:
+                # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
+                carousel_flex_message = FlexSendMessage(
+                    alt_text="Carousel Flex Message",
+                    contents={
+                        "type": "carousel",
+                        "contents": flex_messages[:9] + [generate_see_more_bubble()]
+                    }
+                )
+            line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+            user_states.pop(user_id, None)
 
 
     else:
