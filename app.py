@@ -2342,34 +2342,6 @@ flashcard/flash card"""
             user_flex_messages[user_id] = flex_messages
 
 
-    # 查看更多卡片的函數
-    elif user_id in user_states and user_states[
-        user_id] == 'waiting_for_choosing_mode' and user_input == "See more cards":
-        # 檢查是否還有剩餘卡片
-        if user_id in user_card_index and user_card_index[user_id] < len(user_flex_messages[user_id]):
-            remaining_flex_messages = user_flex_messages[user_id][user_card_index[user_id]:user_card_index[user_id] + 10]
-            user_card_index[user_id] += 10
-
-            if len(remaining_flex_messages) <= 10:
-                carousel_flex_message = FlexSendMessage(
-                    alt_text="Carousel Flex Message",
-                    contents={
-                        "type": "carousel",
-                        "contents": remaining_flex_messages
-                    }
-                )
-            else:
-                carousel_flex_message = FlexSendMessage(
-                    alt_text="Carousel Flex Message",
-                    contents={
-                        "type": "carousel",
-                        "contents": remaining_flex_messages[:9] + [generate_see_more_bubble()]
-                    }
-                )
-            line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-        else:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="No more cards available."))
-
     else:
         # 其他操作失敗的情況
         reply_text = '機器人🤖讀取失敗，請重新嘗試'
