@@ -459,6 +459,7 @@ def generate_flex_message(current_time, word_name, pos_list, chinese_list, examp
         }
     }
 
+#函數：查看更多卡片
 def generate_see_more_bubble():
     return {
         "type": "bubble",
@@ -472,9 +473,9 @@ def generate_see_more_bubble():
                     "flex": 1,
                     "gravity": "center",
                     "action": {
-                        "type": "uri",
+                        "type": "message",
                         "label": "See more",
-                        "uri": "https://linecorp.com"
+                        "uri": "See more cards"
                     }
                 }
             ]
