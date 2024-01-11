@@ -584,7 +584,7 @@ user_decks_name = {}
 user_card_pointers = {}
 user_flex_messages = {}
 user_card_index = {}
-review_word_name = {}
+data_lists_list = {}
 
 
 # 處理訊息事件的函數
@@ -2501,7 +2501,7 @@ flashcard/flash card"""
                 user_states.pop(user_id, None)
                 user_states[user_id] = 'waiting_for_show_word_information'
                 user_flex_messages[user_id] = flex_messages
-                review_word_name[user_id] = word_list
+                data_lists_list[user_id] = data_lists
         elif sheet_type == "閃卡卡片盒":
             reply_text = "🤖努力開發中"
             message = TextSendMessage(text=reply_text)
@@ -2513,20 +2513,29 @@ flashcard/flash card"""
 
     # 選擇學習模式__複習模式查看單字
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_word_information':
-        if user_input.startswith("查看單字"):
-            # 提取使用者要查看的單字
-            requested_word = user_input.replace("查看單字", "").strip()
+        if "查看單字" in user_input:
+            check_name = user_input.split()[1]
+            if check_name in data_lists_list.get(user_id, [[], [], [], [], [], []])[1]:
+                # 找到相應的單字，獲取索引
+                word_index = data_lists_list[user_id][1].index(check_name)
 
-            # 獲取當前卡片索引
-            current_index = user_card_index.get(user_id, 0)
+                # 根據索引獲取相應的數據
+                current_time = data_lists_list[user_id][0][word_index]
+                word_name = data_lists_list[user_id][1][word_index]
+                pos_list = data_lists_list[user_id][2][word_index]
+                chinese_list = data_lists_list[user_id][3][word_index]
+                example_list = data_lists_list[user_id][4][word_index]
+                note_list = data_lists_list[user_id][5][word_index]
 
-            # 從 flex_messages 中獲取相應的卡片信息
-            if current_index < len(user_flex_messages[user_id]):
-                current_card = user_flex_messages[user_id][current_index]
+                # 使用這些數據進行相應的處理，比如構建 Flex Message
+                card = generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
+                                                           note_list)
+                # 發送 Flex Message 給用戶
+                line_bot_api.reply_message(event.reply_token,
+                                           FlexSendMessage(alt_text="Card Information", contents=card))
 
-                reply_text = current_card
-                message = TextSendMessage(text=reply_text)
-                line_bot_api.reply_message(event.reply_token, message)
+
+
 
 
 
