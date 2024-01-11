@@ -2285,7 +2285,7 @@ flashcard/flash card"""
         sheet_url = sheet_type_mapping.get(sheet_type)
         sheet_name = f'{user_id}_{deck_name}'
 
-        if sheet_url:
+        if sheet_url == "單字卡卡片盒":
             # 初始化 spreadsheet
             gc = pygsheets.authorize(service_file='./client_secret.json')
             spreadsheet = gc.open_by_url(sheet_url)
@@ -2340,6 +2340,8 @@ flashcard/flash card"""
                 )
             line_bot_api.reply_message(event.reply_token, carousel_flex_message)
             user_flex_messages[user_id] = flex_messages
+
+    
 
 
     else:
