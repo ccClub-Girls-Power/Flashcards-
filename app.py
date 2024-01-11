@@ -37,42 +37,77 @@ def callback():
     return 'OK'
 
 # LINE NOTIFY區塊
-import secrets
 from flask import Flask, request, redirect, session
+import requests
+
+# 取得 Line Notify 存取令牌的函式
+def get_access_token(client_id, client_secret, code, redirect_uri):
+    line_token_url = "https://notify-bot.line.me/oauth/token"
+    data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri
+    }
+    response = requests.post(line_token_url, data=data)
+    return response.json()
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # 请替换为一个安全的随机字符串
 
 # Line Notify 設定
 LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
 LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
 LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
 
-# Line Notify 的授權路由
+# Line Notify 授權路由（使用者可以透過這個網頁取得我們的Notify授權通知)
 @app.route('/notify_auth', methods=['GET'])
 def notify_auth():
-    # 生成随机的 state 字串
+    # 隨機生成的安全碼
     state = '2024011101020427'
 
-    # 将 state 存储在 session 中，以便在回调时进行验证
+    # 將 state 存儲在 session 中，以便在回調時進行驗證
     session['state'] = state
 
-    # 重定向至 Line Notify 授权页面，包含 state 参数
+    # 重定向至 Line Notify 授權頁面，包含 state 參數
     return redirect(
         f'https://notify-bot.line.me/oauth/authorize?'
         f'response_type=code&scope=notify&response_mode=form_post'
         f'&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&state={state}'
     )
+
 # Line Notify 授權後的回調路由
-@app.route('/notify_callback', methods=['POST'])
+@app.route('/callback', methods=['POST'])
 def notify_callback():
+    # 獲取從 Line Notify 返回的數據
     code = request.form['code']
+    state = request.form['state']
 
-    # 使用 code 向 Line Notify 取得存取權杖等相關處理
+    # 驗證 state，確保它與存儲在 session 中的值匹配，防止 CSRF 攻擊
+    if state != session.get('state'):
+        return '無效的驗證碼。請再試一次。'
 
-    # 可以根據需要重定向至原本的頁面或顯示授權成功的訊息
-    return 'Line Notify 授權成功！'
+    # 使用 code 向 Line Notify 取得存取權杖
+    access_token_data = get_access_token(LINE_NOTIFY_CLIENT_ID, LINE_NOTIFY_CLIENT_SECRET, code, LINE_NOTIFY_CALLBACK_URL)
 
+    # 提取存取權杖
+    access_token = access_token_data.get("access_token")
+
+    # 發送成功授權的消息
+    send_notification(access_token, "與「卡片機器人」連動成功🎉現在可以收到卡片盒複習通知囉")
+
+    return '卡片盒機器人授權成功'
+
+# 向 Line Notify 發送通知的函式
+def send_notification(access_token, message):
+    line_notify_url = "https://notify-api.line.me/api/notify"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {"message": message}
+    response = requests.post(line_notify_url, headers=headers, data=data)
+    return response.json()
 
 
 
