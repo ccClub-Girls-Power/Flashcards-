@@ -2799,13 +2799,12 @@ flashcard/flash card"""
                 user_states[user_id] = 'waiting_for_show_flashcard_information'
                 user_flex_messages[user_id] = flex_messages
                 data_lists_list[user_id] = data_lists
+                user_decks_name[user_id] = deck_name
 
         elif sheet_type == "字典卡片盒":
             reply_text = "🤖努力開發中"
             message = TextSendMessage(text=reply_text)
             line_bot_api.reply_message(event.reply_token, message)
-
-
 
 
 
@@ -2833,7 +2832,23 @@ flashcard/flash card"""
                                            FlexSendMessage(alt_text="Card Information", contents=card))
 
 
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_show_flashcard_information':
+        if "卡片背面" in user_input:
+            check_name = user_input.split()[1]
+            if check_name in data_lists_list.get(user_id, [[], [], []])[1]:
+                # 找到相應的單字，獲取索引
+                word_index = data_lists_list[user_id][1].index(check_name)
 
+                # 根據索引獲取相應的數據
+                current_time = data_lists_list[user_id][0][word_index]
+                front_list = data_lists_list[user_id][1][word_index]
+                back_list = data_lists_list[user_id][2][word_index]
+
+                # 使用這些數據進行相應的處理，比如構建 Flex Message
+                flashcard = flashcard_flex_message(user_decks_name[user_id], current_time, front_list, back_list)
+                # 發送 Flex Message 給用戶
+                line_bot_api.reply_message(event.reply_token,
+                                           FlexSendMessage(alt_text="Card Information", contents=flashcard))
 
 
 
