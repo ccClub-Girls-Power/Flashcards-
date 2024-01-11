@@ -36,6 +36,38 @@ def callback():
 
     return 'OK'
 
+# LINE NOTIFY區塊
+from flask import redirect
+
+
+# Line Notify 設定
+LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
+LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
+LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
+
+
+# Line Notify 的授權路由
+@app.route('/notify_auth', methods=['GET'])
+def notify_auth():
+    # 重定向至 Line Notify 授權頁面
+    return redirect(
+        f'https://notify-bot.line.me/oauth/authorize?'
+        f'response_type=code&scope=notify&response_mode=form_post'
+        f'&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}'
+    )
+
+# Line Notify 授權後的回調路由
+@app.route('/notify_callback', methods=['POST'])
+def notify_callback():
+    code = request.form['code']
+
+    # 使用 code 向 Line Notify 取得存取權杖等相關處理
+
+    # 可以根據需要重定向至原本的頁面或顯示授權成功的訊息
+    return 'Line Notify 授權成功！'
+
+
+
 
 # 訊息傳遞區塊
 ##### 程式編輯都在這個function #####
