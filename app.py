@@ -52,7 +52,7 @@ LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
 @app.route('/notify_auth', methods=['GET'])
 def notify_auth():
     # 生成随机的 state 字串
-    state = secrets.token_urlsafe(16)
+    state = '2024011101020427'
 
     # 将 state 存储在 session 中，以便在回调时进行验证
     session['state'] = state
