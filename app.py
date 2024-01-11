@@ -2747,58 +2747,58 @@ flashcard/flash card"""
                 user_flex_messages[user_id] = flex_messages
                 data_lists_list[user_id] = data_lists
 
-            elif sheet_type == "閃卡卡片盒":
-                if sheet_url:
-                    # 初始化 spreadsheet
-                    gc = pygsheets.authorize(service_file='./client_secret.json')
-                    spreadsheet = gc.open_by_url(sheet_url)
-                    worksheet = spreadsheet.worksheet_by_title(sheet_name)
+        elif sheet_type == "閃卡卡片盒":
+            if sheet_url:
+                # 初始化 spreadsheet
+                gc = pygsheets.authorize(service_file='./client_secret.json')
+                spreadsheet = gc.open_by_url(sheet_url)
+                worksheet = spreadsheet.worksheet_by_title(sheet_name)
 
-                    # 獲取所有數據
-                    all_data = worksheet.get_all_values()
-                    # 假設第一行是列名
-                    column_names = all_data[0]
+                # 獲取所有數據
+                all_data = worksheet.get_all_values()
+                # 假設第一行是列名
+                column_names = all_data[0]
 
-                    # 調用函數獲取數據
-                    current_time_list, front_list, back_list = process_flashcard_deck_v2(all_data, column_names)
+                # 調用函數獲取數據
+                current_time_list, front_list, back_list = process_flashcard_deck_v2(all_data, column_names)
 
-                    columns_list = []
-                    data_lists = []
-                    # 將數據分開
-                    for name, data_list in zip(
-                            ["Current Time List", "Front List", "Back List"],
-                            [current_time_list, front_list, back_list]):
-                        columns_list.append(name)
-                        data_lists.append(data_list)
+                columns_list = []
+                data_lists = []
+                # 將數據分開
+                for name, data_list in zip(
+                        ["Current Time List", "Front List", "Back List"],
+                        [current_time_list, front_list, back_list]):
+                    columns_list.append(name)
+                    data_lists.append(data_list)
 
-                    flex_messages = [review_flashcard_flex_message(current_time, deck_name, front_list) for
-                                     current_time, front_list in
-                                     zip(data_lists[0], data_lists[1])]
+                flex_messages = [review_flashcard_flex_message(current_time, deck_name, front_list) for
+                                 current_time, front_list in
+                                 zip(data_lists[0], data_lists[1])]
 
-                    user_card_index[user_id] = 0
-                    if len(flex_messages) <= 10:
-                        # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-                        carousel_flex_message = FlexSendMessage(
-                            alt_text="Carousel Flex Message",
-                            contents={
-                                "type": "carousel",
-                                "contents": flex_messages
-                            }
-                        )
-                    else:
-                        # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
-                        carousel_flex_message = FlexSendMessage(
-                            alt_text="Carousel Flex Message",
-                            contents={
-                                "type": "carousel",
-                                "contents": flex_messages[:9] + [generate_see_more_bubble()]
-                            }
-                        )
-                    line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                    user_states.pop(user_id, None)
-                    user_states[user_id] = 'waiting_for_show_flashcard_information'
-                    user_flex_messages[user_id] = flex_messages
-                    data_lists_list[user_id] = data_lists
+                user_card_index[user_id] = 0
+                if len(flex_messages) <= 10:
+                    # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+                    carousel_flex_message = FlexSendMessage(
+                        alt_text="Carousel Flex Message",
+                        contents={
+                            "type": "carousel",
+                            "contents": flex_messages
+                        }
+                    )
+                else:
+                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
+                    carousel_flex_message = FlexSendMessage(
+                        alt_text="Carousel Flex Message",
+                        contents={
+                            "type": "carousel",
+                            "contents": flex_messages[:9] + [generate_see_more_bubble()]
+                        }
+                    )
+                line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+                user_states.pop(user_id, None)
+                user_states[user_id] = 'waiting_for_show_flashcard_information'
+                user_flex_messages[user_id] = flex_messages
+                data_lists_list[user_id] = data_lists
 
         elif sheet_type == "字典卡片盒":
             reply_text = "🤖努力開發中"
