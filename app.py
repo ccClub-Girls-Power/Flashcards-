@@ -2285,78 +2285,6 @@ flashcard/flash card"""
         sheet_url = sheet_type_mapping.get(sheet_type)
         sheet_name = f'{user_id}_{deck_name}'
 
-        if sheet_url == "單字卡卡片盒":
-            # 初始化 spreadsheet
-            gc = pygsheets.authorize(service_file='./client_secret.json')
-            spreadsheet = gc.open_by_url(sheet_url)
-            worksheet = spreadsheet.worksheet_by_title(sheet_name)
-
-            # 獲取所有數據
-            all_data = worksheet.get_all_values()
-            # 假設第一行是列名
-            column_names = all_data[0]
-
-            # 調用函數獲取數據
-            current_time_list, word_list, pos_list, chinese_list, example_list, note_list = process_flashcard_deck_v1(
-                all_data,
-                column_names)
-
-            columns_list = []
-            data_lists = []
-            # 將數據分開
-            for name, data_list in zip(
-                    ["Current Time List", "Word List", "POS List", "Chinese List", "Example List", "Note List"],
-                    [current_time_list, word_list, pos_list, chinese_list, example_list, note_list]):
-                columns_list.append(name)
-                data_lists.append(data_list)
-
-            # 只有在 data_lists 長度為 6 時，才生成 Flex Message
-            if len(data_lists) == 6:
-                # 動態生成 Flex Message JSON
-                flex_messages = [generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
-                                                       note_list) for current_time, word_name, pos_list, chinese_list,
-                                 example_list, note_list in
-                                 zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
-                                     data_lists[4], data_lists[5])]
-
-            user_card_index[user_id] = 0
-            if len(flex_messages) <= 10:
-                # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-                carousel_flex_message = FlexSendMessage(
-                    alt_text="Carousel Flex Message",
-                    contents={
-                        "type": "carousel",
-                        "contents": flex_messages
-                    }
-                )
-            else:
-                # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
-                carousel_flex_message = FlexSendMessage(
-                    alt_text="Carousel Flex Message",
-                    contents={
-                        "type": "carousel",
-                        "contents": flex_messages[:9] + [generate_see_more_bubble()]
-                    }
-                )
-            line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-            user_flex_messages[user_id] = flex_messages
-
-
-    # 選擇學習模式__複習模式
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "複習卡片":
-        deck_name = user_decks_name[user_id].split('「')[1].split('」')[0]
-        # 提取「」以前的部分
-        sheet_type = user_decks_name[user_id].split('「')[0]
-        # 定義卡片盒名稱跟試算表URL
-        sheet_type_mapping = {
-            "單字卡卡片盒": 'https://docs.google.com/spreadsheets/d/1_0JteKeNM4yf3QUMKc8R3qpCQTgEhq7K7jfPHnlizio/edit?usp=sharing',
-            "閃卡卡片盒": 'https://docs.google.com/spreadsheets/d/1diPdtyoqyYGDY7n9pITjU3bMv-i3Crc7OKgFSBhTJNc/edit?usp=sharing',
-            "字典卡片盒": 'https://docs.google.com/spreadsheets/d/1UdUmyvZ-W1kkIohnoRxHEd5ISF9PkbF-RtBxtdXteaU/edit?usp=sharing'
-        }
-        # 根據 sheet_type 獲取對應的試算表 URL
-        sheet_url = sheet_type_mapping.get(sheet_type)
-        sheet_name = f'{user_id}_{deck_name}'
-
         if sheet_url == "https://docs.google.com/spreadsheets/d/1_0JteKeNM4yf3QUMKc8R3qpCQTgEhq7K7jfPHnlizio/edit?usp=sharing":
             # 初始化 spreadsheet
             gc = pygsheets.authorize(service_file='./client_secret.json')
@@ -2382,10 +2310,7 @@ flashcard/flash card"""
                 columns_list.append(name)
                 data_lists.append(data_list)
 
-            # 只有在 data_lists 長度為 6 時，才生成 Flex Message
-            if len(data_lists) == 6:
-                # 動態生成 Flex Message JSON
-                flex_messages = [generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
+            flex_messages = [generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
                                                        note_list) for current_time, word_name, pos_list, chinese_list,
                                  example_list, note_list in
                                  zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
@@ -2412,6 +2337,78 @@ flashcard/flash card"""
                 )
             line_bot_api.reply_message(event.reply_token, carousel_flex_message)
             user_flex_messages[user_id] = flex_messages
+
+
+    # # 選擇學習模式__複習模式
+    # elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "複習卡片":
+    #     deck_name = user_decks_name[user_id].split('「')[1].split('」')[0]
+    #     # 提取「」以前的部分
+    #     sheet_type = user_decks_name[user_id].split('「')[0]
+    #     # 定義卡片盒名稱跟試算表URL
+    #     sheet_type_mapping = {
+    #         "單字卡卡片盒": 'https://docs.google.com/spreadsheets/d/1_0JteKeNM4yf3QUMKc8R3qpCQTgEhq7K7jfPHnlizio/edit?usp=sharing',
+    #         "閃卡卡片盒": 'https://docs.google.com/spreadsheets/d/1diPdtyoqyYGDY7n9pITjU3bMv-i3Crc7OKgFSBhTJNc/edit?usp=sharing',
+    #         "字典卡片盒": 'https://docs.google.com/spreadsheets/d/1UdUmyvZ-W1kkIohnoRxHEd5ISF9PkbF-RtBxtdXteaU/edit?usp=sharing'
+    #     }
+    #     # 根據 sheet_type 獲取對應的試算表 URL
+    #     sheet_url = sheet_type_mapping.get(sheet_type)
+    #     sheet_name = f'{user_id}_{deck_name}'
+    #
+    #     if sheet_url == "https://docs.google.com/spreadsheets/d/1_0JteKeNM4yf3QUMKc8R3qpCQTgEhq7K7jfPHnlizio/edit?usp=sharing":
+    #         # 初始化 spreadsheet
+    #         gc = pygsheets.authorize(service_file='./client_secret.json')
+    #         spreadsheet = gc.open_by_url(sheet_url)
+    #         worksheet = spreadsheet.worksheet_by_title(sheet_name)
+    #
+    #         # 獲取所有數據
+    #         all_data = worksheet.get_all_values()
+    #         # 假設第一行是列名
+    #         column_names = all_data[0]
+    #
+    #         # 調用函數獲取數據
+    #         current_time_list, word_list, pos_list, chinese_list, example_list, note_list = process_flashcard_deck_v1(
+    #             all_data,
+    #             column_names)
+    #
+    #         columns_list = []
+    #         data_lists = []
+    #         # 將數據分開
+    #         for name, data_list in zip(
+    #                 ["Current Time List", "Word List", "POS List", "Chinese List", "Example List", "Note List"],
+    #                 [current_time_list, word_list, pos_list, chinese_list, example_list, note_list]):
+    #             columns_list.append(name)
+    #             data_lists.append(data_list)
+    #
+    #         # 只有在 data_lists 長度為 6 時，才生成 Flex Message
+    #         if len(data_lists) == 6:
+    #             # 動態生成 Flex Message JSON
+    #             flex_messages = [generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
+    #                                                    note_list) for current_time, word_name, pos_list, chinese_list,
+    #                              example_list, note_list in
+    #                              zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
+    #                                  data_lists[4], data_lists[5])]
+    #
+    #         user_card_index[user_id] = 0
+    #         if len(flex_messages) <= 10:
+    #             # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+    #             carousel_flex_message = FlexSendMessage(
+    #                 alt_text="Carousel Flex Message",
+    #                 contents={
+    #                     "type": "carousel",
+    #                     "contents": flex_messages
+    #                 }
+    #             )
+    #         else:
+    #             # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
+    #             carousel_flex_message = FlexSendMessage(
+    #                 alt_text="Carousel Flex Message",
+    #                 contents={
+    #                     "type": "carousel",
+    #                     "contents": flex_messages[:9] + [generate_see_more_bubble()]
+    #                 }
+    #             )
+    #         line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+    #         user_flex_messages[user_id] = flex_messages
 
     else:
         # 其他操作失敗的情況
