@@ -40,23 +40,24 @@ def callback():
 import secrets
 from flask import Flask, request, redirect, session
 
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # 请替换为一个安全的随机字符串
 
 # Line Notify 設定
 LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
 LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
 LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
 
-
 # Line Notify 的授權路由
 @app.route('/notify_auth', methods=['GET'])
 def notify_auth():
-    # 生成隨機的 state 字串
+    # 生成随机的 state 字串
     state = secrets.token_urlsafe(16)
 
-    # 將 state 存儲在 session 中，以便在回調時進行驗證
+    # 将 state 存储在 session 中，以便在回调时进行验证
     session['state'] = state
 
-    # 重定向至 Line Notify 授權頁面，包含 state 參數
+    # 重定向至 Line Notify 授权页面，包含 state 参数
     return redirect(
         f'https://notify-bot.line.me/oauth/authorize?'
         f'response_type=code&scope=notify&response_mode=form_post'
