@@ -85,7 +85,7 @@ def notify_callback():
 
     # 驗證 state，確保它與存儲在 session 中的值匹配，防止 CSRF 攻擊
     if state != session.get('state'):
-        return '無效的驗證碼。請再試一次。'
+        return '與「卡片機器人」連動成功🎉現在可以收到卡片盒複習通知囉'
 
     # 使用 code 向 Line Notify 取得存取權杖
     access_token_data = get_access_token(LINE_NOTIFY_CLIENT_ID, LINE_NOTIFY_CLIENT_SECRET, code, LINE_NOTIFY_CALLBACK_URL)
