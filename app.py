@@ -37,7 +37,8 @@ def callback():
     return 'OK'
 
 # LINE NOTIFY區塊
-from flask import redirect
+import secrets
+from flask import Flask, request, redirect, session
 
 
 # Line Notify 設定
@@ -49,13 +50,18 @@ LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
 # Line Notify 的授權路由
 @app.route('/notify_auth', methods=['GET'])
 def notify_auth():
-    # 重定向至 Line Notify 授權頁面
+    # 生成隨機的 state 字串
+    state = secrets.token_urlsafe(16)
+
+    # 將 state 存儲在 session 中，以便在回調時進行驗證
+    session['state'] = state
+
+    # 重定向至 Line Notify 授權頁面，包含 state 參數
     return redirect(
         f'https://notify-bot.line.me/oauth/authorize?'
         f'response_type=code&scope=notify&response_mode=form_post'
-        f'&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}'
+        f'&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&state={state}'
     )
-
 # Line Notify 授權後的回調路由
 @app.route('/notify_callback', methods=['POST'])
 def notify_callback():
