@@ -658,7 +658,7 @@ def review_words_flex_message(current_time, word_name, pos_list):
                     "height": "sm",
                     "action": {
                         "type": "message",
-                        "label": "查看單字",
+                        "label": "查看答案",
                         "text": f"查看單字 {word_name}"
                     }
                 },
@@ -670,6 +670,101 @@ def review_words_flex_message(current_time, word_name, pos_list):
                 }
             ],
             "flex": 0
+        }
+    }
+
+
+# 函數：複習閃卡
+def review_flashcard_flex_message(current_time, deck_name, front_list):
+    # 將 current_time 轉換為 datetime 對象
+    current_time_dt = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
+    # 格式化為只包含日期的字符串
+    formatted_date = current_time_dt.strftime("%Y-%m-%d")
+
+    return {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "text",
+                    "text": "閃卡",
+                    "weight": "bold",
+                    "color": "#1DB446",
+                    "size": "sm"
+                },
+                {
+                    "type": "text",
+                    "weight": "bold",
+                    "size": "xxl",
+                    "text": deck_name,
+                    "margin": "md"
+                },
+                {
+                    "type": "separator",
+                    "margin": "xl"
+                },
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "margin": "lg",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "box",
+                            "layout": "baseline",
+                            "spacing": "sm",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "卡片正面",
+                                    "color": "#aaaaaa",
+                                    "size": "sm",
+                                    "flex": 2
+                                },
+                                {
+                                    "type": "text",
+                                    "text": front_list,
+                                    "wrap": True,
+                                    "color": "#666666",
+                                    "size": "sm",
+                                    "flex": 5
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "separator",
+                    "margin": "xl"
+                },
+                {
+                    "type": "text",
+                    "text": f"建立日期 {formatted_date}",
+                    "size": "sm",
+                    "margin": "sm",
+                    "color": "#aaaaaa",
+                    "align": "end"
+                }
+            ]
+        },
+        "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "button",
+                    "action": {
+                        "type": "message",
+                        "label": "卡片背面",
+                        "text": f"卡片背面 {front_list}"
+                    },
+                    "style": "secondary",
+                    "height": "sm"
+                }
+            ],
+            "spacing": "sm"
         }
     }
 
@@ -2651,14 +2746,68 @@ flashcard/flash card"""
                 user_states[user_id] = 'waiting_for_show_word_information'
                 user_flex_messages[user_id] = flex_messages
                 data_lists_list[user_id] = data_lists
-        elif sheet_type == "閃卡卡片盒":
-            reply_text = "🤖努力開發中"
-            message = TextSendMessage(text=reply_text)
-            line_bot_api.reply_message(event.reply_token, message)
+
+            elif sheet_type == "閃卡卡片盒":
+                if sheet_url:
+                    # 初始化 spreadsheet
+                    gc = pygsheets.authorize(service_file='./client_secret.json')
+                    spreadsheet = gc.open_by_url(sheet_url)
+                    worksheet = spreadsheet.worksheet_by_title(sheet_name)
+
+                    # 獲取所有數據
+                    all_data = worksheet.get_all_values()
+                    # 假設第一行是列名
+                    column_names = all_data[0]
+
+                    # 調用函數獲取數據
+                    current_time_list, front_list, back_list = process_flashcard_deck_v2(all_data, column_names)
+
+                    columns_list = []
+                    data_lists = []
+                    # 將數據分開
+                    for name, data_list in zip(
+                            ["Current Time List", "Front List", "Back List"],
+                            [current_time_list, front_list, back_list]):
+                        columns_list.append(name)
+                        data_lists.append(data_list)
+
+                    flex_messages = [review_flashcard_flex_message(current_time, deck_name, front_list) for
+                                     current_time, front_list in
+                                     zip(data_lists[0], data_lists[1])]
+
+                    user_card_index[user_id] = 0
+                    if len(flex_messages) <= 10:
+                        # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+                        carousel_flex_message = FlexSendMessage(
+                            alt_text="Carousel Flex Message",
+                            contents={
+                                "type": "carousel",
+                                "contents": flex_messages
+                            }
+                        )
+                    else:
+                        # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕
+                        carousel_flex_message = FlexSendMessage(
+                            alt_text="Carousel Flex Message",
+                            contents={
+                                "type": "carousel",
+                                "contents": flex_messages[:9] + [generate_see_more_bubble()]
+                            }
+                        )
+                    line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+                    user_states.pop(user_id, None)
+                    user_states[user_id] = 'waiting_for_show_flashcard_information'
+                    user_flex_messages[user_id] = flex_messages
+                    data_lists_list[user_id] = data_lists
+
         elif sheet_type == "字典卡片盒":
             reply_text = "🤖努力開發中"
             message = TextSendMessage(text=reply_text)
             line_bot_api.reply_message(event.reply_token, message)
+
+
+
+
 
     # 選擇學習模式__複習模式查看單字
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_word_information':
@@ -2682,9 +2831,6 @@ flashcard/flash card"""
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=card))
-
-
-
 
 
 
