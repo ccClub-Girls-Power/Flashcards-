@@ -2806,8 +2806,6 @@ flashcard/flash card"""
             message = TextSendMessage(text=reply_text)
             line_bot_api.reply_message(event.reply_token, message)
 
-
-
     # 選擇學習模式__複習模式查看單字
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_word_information':
         if "查看單字" in user_input:
@@ -2832,23 +2830,27 @@ flashcard/flash card"""
                                            FlexSendMessage(alt_text="Card Information", contents=card))
 
 
+
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_flashcard_information':
         if "卡片背面" in user_input:
-            check_name = user_input.split()[1]
-            if check_name in data_lists_list.get(user_id, [[], [], []])[1]:
-                # 找到相應的單字，獲取索引
-                word_index = data_lists_list[user_id][1].index(check_name)
+            check_front_name = user_input.split()[1]
+            if check_front_name in data_lists_list.get(user_id, [[], []])[1]:
+                # 找到相應的卡片，獲取索引
+                card_index = data_lists_list[user_id][1].index(check_front_name)
 
                 # 根據索引獲取相應的數據
-                current_time = data_lists_list[user_id][0][word_index]
-                front_list = data_lists_list[user_id][1][word_index]
-                back_list = data_lists_list[user_id][2][word_index]
+
+                current_time = data_lists_list[user_id][0][card_index]
+                front_list = data_lists_list[user_id][1][card_index]
+                back_list = data_lists_list[user_id][2][card_index]
 
                 # 使用這些數據進行相應的處理，比如構建 Flex Message
-                flashcard = flashcard_flex_message(user_decks_name[user_id], current_time, front_list, back_list)
+                flashcard = flashcard_flex_message(user_decks_name[user_id], current_time, front_list,back_list)
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=flashcard))
+
+
 
 
 
