@@ -584,6 +584,7 @@ user_decks_name = {}
 user_card_pointers = {}
 user_flex_messages = {}
 user_card_index = {}
+review_word_name = {}
 
 
 # 處理訊息事件的函數
@@ -2497,7 +2498,10 @@ flashcard/flash card"""
                         }
                     )
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+                user_states.pop(user_id, None)
+                user_states[user_id] = 'waiting_for_show_word_information'
                 user_flex_messages[user_id] = flex_messages
+                review_word_name[user_id] = word_list
         elif sheet_type == "閃卡卡片盒":
             reply_text = "🤖努力開發中"
             message = TextSendMessage(text=reply_text)
@@ -2506,6 +2510,27 @@ flashcard/flash card"""
             reply_text = "🤖努力開發中"
             message = TextSendMessage(text=reply_text)
             line_bot_api.reply_message(event.reply_token, message)
+
+    # 選擇學習模式__複習模式查看單字
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_show_word_information':
+        if user_input.startswith("查看單字"):
+            # 提取使用者要查看的單字
+            requested_word = user_input.replace("查看單字", "").strip()
+
+            # 獲取當前卡片索引
+            current_index = user_card_index.get(user_id, 0)
+
+            # 從 flex_messages 中獲取相應的卡片信息
+            if current_index < len(user_flex_messages[user_id]):
+                current_card = user_flex_messages[user_id][current_index]
+
+                reply_text = current_card
+                message = TextSendMessage(text=reply_text)
+                line_bot_api.reply_message(event.reply_token, message)
+
+
+
+
 
     else:
         # 其他操作失敗的情況
