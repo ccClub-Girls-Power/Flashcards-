@@ -3100,28 +3100,32 @@ flashcard/flash card"""
                 gc = pygsheets.authorize(service_file='./client_secret.json')
                 spreadsheet = gc.open_by_url(sheet_url)
                 worksheet = spreadsheet.worksheet_by_title(sheet_name)
-
                 # 獲取所有資料
                 all_data = worksheet.get_all_values()
                 # 第一行是欄位名稱
                 column_names = all_data[0]
-                # 調用函數獲取資料
-                current_time_list, front_list, back_list = process_flashcard_deck_v2(all_data, column_names)
+                # 調用函數獲取數據
+                current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list, uk_pron_list = process_flashcard_deck_v3(
+                    all_data, column_names)
 
                 columns_list = []
                 data_lists = []
                 # 將數據分開
                 for name, data_list in zip(
-                        ["Current Time List", "Front List", "Back List"],
-                        [current_time_list, front_list, back_list]):
+                        ["Current Time List", "Word List", "Pos List", "Chinese List", "Example List", "US Pron List",
+                         "UK Pron List"],
+                        [current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list,
+                         uk_pron_list]):
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                flex_messages = [review_flashcard_flex_message(current_time, deck_name, front_list) for
-                                 current_time, front_list in
-                                 zip(data_lists[0], data_lists[1])]
-
+                flex_messages = [
+                    review_dic_flex_message(current_time, word)
+                    for current_time, word
+                    in zip(data_lists[0], data_lists[1])
+                ]
                 user_card_index[user_id] = 0
+
                 if len(flex_messages) <= 10:
                     # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
                     carousel_flex_message = FlexSendMessage(
@@ -3132,7 +3136,7 @@ flashcard/flash card"""
                         }
                     )
                 else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個flex message)
+                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
                     carousel_flex_message = FlexSendMessage(
                         alt_text="Carousel Flex Message",
                         contents={
@@ -3141,11 +3145,8 @@ flashcard/flash card"""
                         }
                     )
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                user_states.pop(user_id, None)
-                user_states[user_id] = 'waiting_for_show_flashcard_information'
-                user_flex_messages[user_id] = flex_messages
                 data_lists_list[user_id] = data_lists
-                user_decks_name[user_id] = deck_name
+                user_states[user_id] = 'waiting_for_show_dic_card_information'
 
     # 複習模式查看單字
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_word_information':
