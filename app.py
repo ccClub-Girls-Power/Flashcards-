@@ -11,17 +11,17 @@ from linebot.models import FlexSendMessage, TextSendMessage, MessageEvent, TextM
 
 # 載入其他套件
 import pygsheets  # Google sheet資料庫串接
-import pandas as pd  # 資料整理
+import pandas as pd  # 數據整理
 import pytz  # 指定時區
 from datetime import datetime  # 時間
 from bs4 import BeautifulSoup  # 爬蟲
-import os
+import os # 取得環境變數
 
 app = Flask(__name__)
 
-# 必須放上自己的Channel Access Token（為了隱密性，用環境變數）
+# LineBot Channel Access Token（為了隱密性，用環境變數）
 line_bot_api = LineBotApi(os.environ.get('jill_linebot_api'))
-# 必須放上自己的Channel Secret（為了隱密性，用環境變數）
+# LineBot Channel Secret（為了隱密性，用環境變數）
 handler = WebhookHandler(os.environ.get('jill_linebot_channel_secret'))
 
 # 監聽所有來自 /callback 的 Post Request
@@ -43,7 +43,7 @@ def callback():
     return 'OK'
 
 
-# LINE NOTIFY區塊
+####### LINE Notify 區塊#######
 def send_notification(access_token, message):
     line_notify_url = "https://notify-api.line.me/api/notify"
     headers = {
@@ -3325,8 +3325,6 @@ flashcard/flash card"""
 
 
 # 主程式
-import os
-
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
