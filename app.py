@@ -3194,7 +3194,7 @@ flashcard/flash card"""
 
     # 複習模式查看單字
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_dic_information':
-        if "查看單字" in user_input:
+        if "查看字典單字" in user_input:
             check_dic_word_name = user_input.split()[1]
             if check_dic_word_name in data_lists_list.get(user_id, [[], [], [], [], [], [], []])[1]:
                 # 找到相應的單字，獲取索引
