@@ -19,10 +19,9 @@ from bs4 import BeautifulSoup  # 爬蟲
 app = Flask(__name__)
 
 # 必須放上自己的Channel Access Token
-line_bot_api = LineBotApi(
-    'Yxy/j1WMkLcW+qV2OJb1YIjx9V4sGCcUmxlP8FTtHiEkr/P5TiaOwocFqWnpeS1G1D7S/QO/Qibsd6P3u2pf7An14bzy/nb10NNfFtKgyIITsFNIB4Wl9o4xNzHk7Cgk+hab356oMaMA4gkt7tu26wdB04t89/1O/w1cDnyilFU=')
+line_bot_api = LineBotApi(Jill_linebot_API)
 # 必須放上自己的Channel Secret
-handler = WebhookHandler('9b53acd27ad8b0b02b9f379e21f1305b')
+handler = WebhookHandler(jill_linebot_channel_secret)
 
 
 # 監聽所有來自 /callback 的 Post Request
