@@ -1087,7 +1087,7 @@ def handle_message(event):
         # 回覆訊息
         line_bot_api.reply_message(event.reply_token, [text_message, bubble_message])
         user_states[user_id] = 'waiting_for_choosing_type'
-
+        
     ######閃卡卡片盒######
     elif user_id in user_states and user_states[
         user_id] == 'waiting_for_choosing_type' and user_input == '我要建立閃卡':
@@ -3315,7 +3315,7 @@ flashcard/flash card"""
                 reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
-    # 操作失敗的情況
+    # 操作失敗
     else:
         # 回覆使用者
         reply_text = '卡片盒機器人🤖讀取失敗\n請重新嘗試\n(對不起我是新手機器人，需要一些時間來熟悉工作流程。請依循步驟和指令輸入，如有不便敬請見諒🙏）'
