@@ -3192,6 +3192,29 @@ flashcard/flash card"""
                                            FlexSendMessage(alt_text="Card Information", contents=flashcard))
 
 
+    # 複習模式查看單字
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_show_dic_information':
+        if "查看單字" in user_input:
+            check_dic_word_name = user_input.split()[1]
+            if check_dic_word_name in data_lists_list.get(user_id, [[], [], [], [], [], [], []])[1]:
+                # 找到相應的單字，獲取索引
+                word_index = data_lists_list[user_id][1].index(check_dic_word_name)
+
+                # 根據索引獲取相應的數據
+                current_time = data_lists_list[user_id][0][word_index]
+                word_name = data_lists_list[user_id][1][word_index]
+                pos_list = data_lists_list[user_id][2][word_index]
+                chinese_list = data_lists_list[user_id][3][word_index]
+                example_list = data_lists_list[user_id][4][word_index]
+                us_pron_list = data_lists_list[user_id][5][word_index]
+                uk_pron_list = data_lists_list[user_id][6][word_index]
+
+                # 使用這些數據進行相應的處理，比如構建 Flex Message
+                card = create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_list, uk_pron_list, word_name)
+
+                # 發送 Flex Message 給用戶
+                line_bot_api.reply_message(event.reply_token,
+                                           FlexSendMessage(alt_text="Card Information", contents=card))
 
 
 
