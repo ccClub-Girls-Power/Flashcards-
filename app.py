@@ -2501,9 +2501,9 @@ flashcard/flash card"""
             current_time = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
             try:
                 pos_list, example_list, us_pronunciation_url, uk_pronunciation_url = lookup_word(
-                    user_searching_word_decks[user_id])
+                    user_searching_words[user_id])
                 result = searching_word_to_sheet(current_time, service_file_path, spreadsheet_url, sheet_title,
-                                                 user_searching_word_decks[user_id], pos_list, example_list,
+                                                 user_searching_words[user_id], pos_list, example_list,
                                                  us_pronunciation_url, uk_pronunciation_url)
                 # 提示使用者卡片是否成功儲存
                 if result:
@@ -2535,10 +2535,10 @@ flashcard/flash card"""
             current_time = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
             try:
                 pos_list, example_list, us_pronunciation_url, uk_pronunciation_url = lookup_word(
-                    user_searching_word_decks[user_id])
+                    user_searching_words[user_id])
                 insert_position = searching_word_to_existing_sheet(current_time, service_file_path, spreadsheet_url,
                                                                    sheet_title,
-                                                                   user_searching_word_decks[user_id], pos_list,
+                                                                   user_searching_words[user_id], pos_list,
                                                                    example_list,
                                                                    us_pronunciation_url, uk_pronunciation_url)
                 # 提示使用者卡片是否成功儲存
