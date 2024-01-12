@@ -3215,7 +3215,21 @@ flashcard/flash card"""
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=card))
-                user_states[user_id] = 'waiting_for_choosing_example_button'
+        if "查看字典例句" in user_input:
+            check_word_name = user_input.split()[1]
+            if check_word_name in data_lists_list.get(user_id, [[], [], [], [], [], [], []])[1]:
+                # 找到相應的單字，獲取索引
+                word_index = data_lists_list[user_id][1].index(check_word_name)
+                # 根據索引獲取相應的數據
+                example_list = data_lists_list[user_id][4][word_index].split("//")
+
+                send_message_list = []  # Linebot要一次發送多個訊息需要先把訊息用list包起來
+                for reply_example in example_list:
+                    if len(send_message_list) < 5:  # Linebot一次發送訊息不能超過五則
+                        send_message_list.append(
+                            TextSendMessage(text=f"{check_word_name}\n{reply_example}")
+                        )
+                line_bot_api.reply_message(event.reply_token, send_message_list)
 
 
 
