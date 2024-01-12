@@ -751,6 +751,7 @@ def create_flex_contents(pos, chinese, formatted_date, us_pron_url, uk_pron_url,
 
     return flex_contents
 
+
 def create_flex_message(word, flex_contents):
     return FlexSendMessage(
         alt_text=word,
@@ -2900,11 +2901,22 @@ flashcard/flash card"""
                 current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list, uk_pron_list = process_flashcard_deck_v3(
                     all_data, column_names)
 
+                columns_list = []
+                data_lists = []
+                # 將數據分開
+                for name, data_list in zip(
+                        ["Current Time List", "Word List", "Pos List", "Chinese List", "Example List", "US Pron List",
+                         "UK Pron List"],
+                        [current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list,
+                         uk_pron_list]):
+                    columns_list.append(name)
+                    data_lists.append(data_list)
+
                 flex_messages = [create_flex_message(word, create_flex_contents(pos, chinese, current_time, us_pron,
                                                                                 uk_pron, word)) for
                                  word, pos, chinese, current_time, us_pron, uk_pron in
-                                 zip(word_list, pos_list, chinese_list, current_time_list, us_pron_list,
-                                     uk_pron_list)]
+                                 zip(data_lists[1], data_lists[2], data_lists[3], data_lists[0], data_lists[5],
+                                     data_lists[6])]
 
                 user_card_index[user_id] = 0
                 if len(flex_messages) <= 10:
