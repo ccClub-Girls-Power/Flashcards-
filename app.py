@@ -659,100 +659,48 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     }
 
 
-# 函數：一般查看字典卡（變動資料＋固定資料）
-def create_flex_contents(pos, chinese, formatted_date, us_pron_url, uk_pron_url, word):
-    flex_contents = []  # 整理 flex message 的變動資料(依據各個單字詞性多寡跑迴圈)
-    obj = {
-        "type": "box",
-        "layout": "horizontal",
-        "contents": [
-            {
-                "type": "text",
-                "text": pos,
-                "size": "sm",
-                "color": "#555555",
-                "flex": 0,
-            },
-            {
-                "type": "text",
-                "text": chinese,
-                "wrap": True,
-                "size": "sm",
-                "color": "#111111",
-                "align": "end",
-            },
-        ],
-    }
-    flex_contents.append(obj)
+def create_flex_dictionary_card(pos, chinese, formatted_date, us_pron_url, uk_pron_url, word):
+    # 以逗號分隔的字串轉成清單
+    pos_list = pos.split(",")
+    chinese_list = chinese.split(",")
 
-    # 整理 flex message 固定內容的資料
+    # 使用 zip 進行配對
+    flex_contents = [
+        {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+                {"type": "text", "text": p, "size": "sm", "color": "#555555", "flex": 0},
+                {"type": "text", "text": c, "wrap": True, "size": "sm", "color": "#111111", "align": "end"},
+            ],
+        } for p, c in zip(pos_list, chinese_list)
+    ]
+
+    # 其餘不變
     fixed_contents = [
         {
             "type": "box",
             "layout": "horizontal",
             "contents": [
-                {
-                    "type": "text",
-                    "text": "參考字典",
-                    "size": "sm",
-                    "color": "#555555",
-                    "flex": 0,
-                },
-                {
-                    "type": "text",
-                    "text": "劍橋字典",
-                    "size": "sm",
-                    "color": "#111111",
-                    "align": "end",
-                },
+                {"type": "text", "text": "參考字典", "size": "sm", "color": "#555555", "flex": 0},
+                {"type": "text", "text": "劍橋字典", "size": "sm", "color": "#111111", "align": "end"},
             ],
         },
         {"type": "separator", "margin": "xxl"},
-        {
-            "type": "text",
-            "text": f"建立日期 {formatted_date}",
-            "size": "sm",
-            "margin": "sm",
-            "color": "#aaaaaa",
-            "align": "end"
-        },
+        {"type": "text", "text": f"建立日期 {formatted_date}", "size": "sm", "margin": "sm", "color": "#aaaaaa", "align": "end"},
         {
             "type": "box",
             "layout": "vertical",
             "contents": [
-                {
-                    "type": "button",
-                    "action": {
-                        "type": "uri",
-                        "label": "聽美式發音",
-                        "uri": us_pron_url,  # 使用劍橋字典的美式發音連結
-                    },
-                },
-                {
-                    "type": "button",
-                    "action": {
-                        "type": "uri",
-                        "label": "聽英式發音",
-                        "uri": uk_pron_url,  # 使用劍橋字典的英式發音連結
-                    },
-                },
-                {
-                    "type": "button",
-                    "action": {
-                        "type": "message",
-                        "label": "查看例句",
-                        "text": f"查看字典例句 {word}",
-                    },
-                },
+                {"type": "button", "action": {"type": "uri", "label": "聽美式發音", "uri": us_pron_url}},
+                {"type": "button", "action": {"type": "uri", "label": "聽英式發音", "uri": uk_pron_url}},
+                {"type": "button", "action": {"type": "message", "label": "查看例句", "text": f"查看字典例句 {word}"}},
             ],
         },
     ]
+
     flex_contents.extend(fixed_contents)
 
-    return flex_contents
-
-
-def create_flex_message(word, flex_contents):
     return FlexSendMessage(
         alt_text=word,
         contents={
@@ -761,34 +709,15 @@ def create_flex_message(word, flex_contents):
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                    {
-                        "type": "text",
-                        "text": "查字典",
-                        "weight": "bold",
-                        "color": "#1DB446",
-                        "size": "sm",
-                    },
-                    {
-                        "type": "text",
-                        "text": word,
-                        "weight": "bold",
-                        "size": "xxl",
-                        "margin": "md",
-                    },
+                    {"type": "text", "text": "查字典", "weight": "bold", "color": "#1DB446", "size": "sm"},
+                    {"type": "text", "text": word, "weight": "bold", "size": "xxl", "margin": "md"},
                     {"type": "separator", "margin": "xxl"},
-                    {
-                        "type": "box",
-                        "layout": "vertical",
-                        "margin": "xxl",
-                        "spacing": "sm",
-                        "contents": flex_contents,
-                    },
+                    {"type": "box", "layout": "vertical", "margin": "xxl", "spacing": "sm", "contents": flex_contents},
                 ],
             },
             "styles": {"footer": {"separator": True}},
         },
     )
-
 
 # 函數：查看更多卡片
 def generate_see_more_bubble():
