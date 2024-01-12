@@ -659,6 +659,7 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     }
 
 
+
 # 函數：一般查看字典卡
 def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word):
     # 將 current_time 轉換為 datetime 對象
@@ -680,7 +681,6 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
         } for p, c in zip(pos, chinese)
     ]
 
-    # 其餘不變
     fixed_contents = [
         {
             "type": "box",
@@ -691,7 +691,6 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
             ],
         },
         {"type": "separator", "margin": "xxl"},
-        {"type": "text", "text": f"建立日期 {formatted_date}", "size": "sm", "margin": "sm", "color": "#aaaaaa", "align": "end"},
         {
             "type": "box",
             "layout": "vertical",
@@ -701,24 +700,43 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
                 {"type": "button", "action": {"type": "message", "label": "查看例句", "text": f"查看字典例句 {word}"}},
             ],
         },
+        {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [],
+            "margin": "sm"
+        },
+        {
+            "type": "separator",
+            "margin": "xl"
+        },
+        {
+            "type": "text",
+            "text": f"建立日期 {formatted_date}",
+            "size": "sm",
+            "color": "#aaaaaa",
+            "align": "end",
+            "margin": "sm"
+        }
     ]
 
     flex_contents.extend(fixed_contents)
 
     return {
-            "type": "bubble",
-            "body": {
-                "type": "box",
-                "layout": "vertical",
-                "contents": [
-                    {"type": "text", "text": "字典卡", "weight": "bold", "color": "#1DB446", "size": "sm"},
-                    {"type": "text", "text": word, "weight": "bold", "size": "xxl", "margin": "md"},
-                    {"type": "separator", "margin": "xxl"},
-                    {"type": "box", "layout": "vertical", "margin": "xxl", "spacing": "sm", "contents": flex_contents},
-                ],
-            },
-            "styles": {"footer": {"separator": True}},
-        }
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {"type": "text", "text": "字典卡", "weight": "bold", "color": "#1DB446", "size": "sm"},
+                {"type": "text", "text": word, "weight": "bold", "size": "xxl", "margin": "md"},
+                {"type": "separator", "margin": "xxl"},
+                {"type": "box", "layout": "vertical", "margin": "xxl", "spacing": "sm", "contents": flex_contents},
+            ],
+        },
+        "styles": {"footer": {"separator": True}},
+    }
+
 
 # 函數：查看更多卡片
 def generate_see_more_bubble():
