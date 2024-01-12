@@ -1016,6 +1016,7 @@ user_flex_messages = {}
 user_card_index = {}
 data_lists_list = {}
 user_example_lists = {}
+user_remain_messages = {}
 
 
 # 處理訊息事件的函數
@@ -2853,8 +2854,11 @@ flashcard/flash card"""
                             "contents": flex_messages[:9] + [generate_see_more_bubble()]
                         }
                     )
+                    user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
+                user_states[user_id] = 'waiting_for_see_more_word_cards'
+
         elif sheet_type == "閃卡卡片盒":
             if sheet_url:
                 # 進入google sheet資料庫
@@ -2955,6 +2959,55 @@ flashcard/flash card"""
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 data_lists_list[user_id] = data_lists
                 user_states[user_id] = 'waiting_for_choosing_example_button'
+
+
+    # 當使用者處於等待看更多單字卡的狀態時
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_see_more_word_cards':
+        if "See more cards" in user_input:
+            remaining_flex_messages = user_remain_messages.get(user_id, [])
+            # 計算剩餘卡片數
+            remaining_card_count = len(remaining_flex_messages)
+            # 如果還有剩餘卡片
+            if remaining_card_count > 0:
+                # 計算要展示的卡片數量
+                display_card_count = min(remaining_card_count, 10)
+                # 取出要展示的卡片
+                display_flex_messages = remaining_flex_messages[:display_card_count]
+                # 更新剩餘卡片
+                user_remain_messages[user_id] = remaining_flex_messages[display_card_count:]
+
+                # 構建 Flex Message
+                if len(display_flex_messages) <= 10:
+                    carousel_flex_message = FlexSendMessage(
+                        alt_text="Carousel Flex Message",
+                        contents={
+                            "type": "carousel",
+                            "contents": display_flex_messages
+                        }
+                    )
+
+                else:
+                    carousel_flex_message = FlexSendMessage(
+                        alt_text="Carousel Flex Message",
+                        contents={
+                            "type": "carousel",
+                            "contents": display_flex_messages[:9] + [generate_see_more_bubble()]
+                        }
+                    )
+
+                # 回覆 Flex Message
+                line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+                # 如果沒有剩餘卡片，更新使用者狀態
+                if remaining_card_count <= 0:
+                    user_states.pop(user_id, None)
+
+            else:
+                # 沒有剩餘卡片，回應使用者
+                reply_text = '已經沒有更多卡片了。'
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+
+
+
 
     # 一般查看字典卡產生後，使用者選擇按鈕（查看例句）
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_example_button':
@@ -3191,7 +3244,6 @@ flashcard/flash card"""
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=flashcard))
 
-
     # 複習模式查看單字
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_dic_information':
         if "查看字典單字" in user_input:
@@ -3231,9 +3283,13 @@ flashcard/flash card"""
                         )
                 line_bot_api.reply_message(event.reply_token, send_message_list)
 
+
+
+
+    # 讀取錯誤情況
     else:
         # 其他操作失敗的情況
-        reply_text = '機器人🤖讀取失敗，請重新嘗試\n(對不起我是新手機器人，需要時間熟悉工作，如有不便請見諒！）'
+        reply_text = '卡片盒機器人🤖讀取失敗，請重新嘗試\n(很抱歉🙏我是新手機器人，需要一些時間來熟悉工作流程。請依循步驟和指令輸入，如有不便敬請見諒！）'
         # 回覆使用者
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
