@@ -2211,7 +2211,7 @@ flashcard/flash card"""
         pos_list, example_list, us_pron_url, uk_pron_url = lookup_word(searching_word)
         if not pos_list:
             # 如果查詢不到結果，回覆相應訊息給使用者
-            reply_text = f'抱歉，找不到單字 "{searching_word}" 的相關資訊，請嘗試輸入其他單字。'
+            reply_text = f'卡片盒機器人🤖找不到單字 "{searching_word}" 的相關資訊，請嘗試輸入其他單字。'
             message = TextSendMessage(text=reply_text)
             line_bot_api.reply_message(event.reply_token, message)
             user_states.pop(user_id, None)
@@ -2857,7 +2857,7 @@ flashcard/flash card"""
                     user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
-                user_states[user_id] = 'waiting_for_see_more_word_cards'
+                user_states[user_id] = 'waiting_for_see_more_cards'
 
         elif sheet_type == "閃卡卡片盒":
             if sheet_url:
@@ -2904,8 +2904,10 @@ flashcard/flash card"""
                             "contents": flex_messages[:9] + [generate_see_more_bubble()]
                         }
                     )
+                    user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
+                user_states[user_id] = 'waiting_for_see_more_cards'
         elif sheet_type == "字典卡片盒":
             if sheet_url:
                 # 進入google sheet資料庫
@@ -2956,13 +2958,13 @@ flashcard/flash card"""
                             "contents": flex_messages[:9] + [generate_see_more_bubble()]
                         }
                     )
+                    user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 data_lists_list[user_id] = data_lists
-                user_states[user_id] = 'waiting_for_choosing_example_button'
+                user_states[user_id] = 'waiting_for_see_more_cards'
 
-
-    # 當使用者處於等待看更多單字卡的狀態時
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_see_more_word_cards':
+    # 選擇學習模式__一般查看＿單字卡＿See more
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_see_more_cards':
         if "See more cards" in user_input:
             remaining_flex_messages = user_remain_messages.get(user_id, [])
             # 計算剩餘卡片數
@@ -3001,11 +3003,11 @@ flashcard/flash card"""
                 # 如果沒有剩餘卡片，更新使用者狀態
                 if remaining_card_count <= 0:
                     user_states.pop(user_id, None)
-
             else:
                 # 沒有剩餘卡片，回應使用者
                 reply_text = '已經沒有更多卡片了。'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+
 
 
 
@@ -3264,7 +3266,8 @@ flashcard/flash card"""
                 uk_pron_list = data_lists_list[user_id][6][word_index]
 
                 # 使用這些數據進行相應的處理，比如構建 Flex Message
-                card = create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_list, uk_pron_list, word_name)
+                card = create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_list, uk_pron_list,
+                                                   word_name)
 
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
@@ -3291,7 +3294,7 @@ flashcard/flash card"""
     # 讀取錯誤情況
     else:
         # 其他操作失敗的情況
-        reply_text = '卡片盒機器人🤖讀取失敗，請重新嘗試\n(很抱歉🙏我是新手機器人，需要一些時間來熟悉工作流程。請依循步驟和指令輸入，如有不便敬請見諒！）'
+        reply_text = '卡片盒機器人🤖讀取失敗\n請重新嘗試\n(對不起我是新手機器人，需要一些時間來熟悉工作流程。請依循步驟和指令輸入，如有不便敬請見諒🙏）'
         # 回覆使用者
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
