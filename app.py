@@ -3119,34 +3119,33 @@ flashcard/flash card"""
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                flex_messages = [
-                    review_dic_flex_message(current_time, word_name)
-                    for current_time, word_name
-                    in zip(data_lists[0], data_lists[1])
-                ]
-                user_card_index[user_id] = 0
+                flex_message = review_dic_flex_message(data_lists[0][0], data_lists[1][0])
 
-                if len(flex_messages) <= 10:
-                    # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages
-                        }
-                    )
-                else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages[:9] + [generate_see_more_bubble()]
-                        }
-                    )
-                line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+                # user_card_index[user_id] = 0
+                #
+                # if len(flex_messages) <= 10:
+                #     # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+                #     carousel_flex_message = FlexSendMessage(
+                #         alt_text="Carousel Flex Message",
+                #         contents={
+                #             "type": "carousel",
+                #             "contents": flex_messages
+                #         }
+                #     )
+                # else:
+                #     # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
+                #     carousel_flex_message = FlexSendMessage(
+                #         alt_text="Carousel Flex Message",
+                #         contents={
+                #             "type": "carousel",
+                #             "contents": flex_messages[:9] + [generate_see_more_bubble()]
+                #         }
+                #     )
+                flex_reply_message = FlexSendMessage(alt_text="建立閃卡", contents=flex_message)
+                line_bot_api.reply_message(event.reply_token, flex_reply_message)
                 data_lists_list[user_id] = data_lists
                 user_states[user_id] = 'waiting_for_show_dic_information'
+
     # 複習模式查看單字
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_word_information':
         if "查看單字" in user_input:
