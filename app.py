@@ -659,13 +659,13 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     }
 
 
-def create_flex_dictionary_card(pos, chinese, current_time, us_pron_url, uk_pron_url, word):
+def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word):
     # 將 current_time 轉換為 datetime 對象
     current_time_dt = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
     # 格式化為只包含日期的字符串
     formatted_date = current_time_dt.strftime("%Y-%m-%d")
-    pos_list = pos.split(",")
-    chinese_list = chinese.split(",")
+    pos = pos_list.split(",")
+    chinese = chinese_list.split(",")
 
     # 使用 zip 進行配對
     flex_contents = [
@@ -676,7 +676,7 @@ def create_flex_dictionary_card(pos, chinese, current_time, us_pron_url, uk_pron
                 {"type": "text", "text": p, "size": "sm", "color": "#555555", "flex": 0},
                 {"type": "text", "text": c, "wrap": True, "size": "sm", "color": "#111111", "align": "end"},
             ],
-        } for p, c in zip(pos_list, chinese_list)
+        } for p, c in zip(pos, chinese)
     ]
 
     # 其餘不變
@@ -2844,32 +2844,30 @@ flashcard/flash card"""
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                flex_messages = [create_flex_dictionary_card(pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word_list)for
-                                 pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word_list in
-                                 zip(data_lists[2], data_lists[3], data_lists[0], data_lists[5], data_lists[6],
-                                     data_lists[1])]
+                flex_message = create_flex_dictionary_card(data_lists[2][0], data_lists[3][0], data_lists[0][0], data_lists[5][0], data_lists[6][0], data_lists[1][0])
 
-                user_card_index[user_id] = 0
-                if len(flex_messages) <= 10:
-                    # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages
-                        }
-                    )
-                else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages[:9] + [generate_see_more_bubble()]
-                        }
-                    )
-                line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                user_flex_messages[user_id] = flex_messages
+                # user_card_index[user_id] = 0
+                # if len(flex_messages) <= 10:
+                #     # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+                #     carousel_flex_message = FlexSendMessage(
+                #         alt_text="Carousel Flex Message",
+                #         contents={
+                #             "type": "carousel",
+                #             "contents": flex_messages
+                #         }
+                #     )
+                # else:
+                #     # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
+                #     carousel_flex_message = FlexSendMessage(
+                #         alt_text="Carousel Flex Message",
+                #         contents={
+                #             "type": "carousel",
+                #             "contents": flex_messages[:9] + [generate_see_more_bubble()]
+                #         }
+                #     )
+                flex_reply_message = FlexSendMessage(alt_text="字典卡", contents=flex_message)
+                line_bot_api.reply_message(event.reply_token, flex_message)
+
 
 
     # 選擇學習模式__複習模式
