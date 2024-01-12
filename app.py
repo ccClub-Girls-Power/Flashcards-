@@ -73,7 +73,7 @@ def get_access_token(client_id, client_secret, code, redirect_uri):
 # Line Notify 設定
 LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
 LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
-LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
+LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
 
 
 # Line Notify 授權路由（使用者可以透過這個網頁取得我們的Notify授權通知)
@@ -2928,9 +2928,9 @@ flashcard/flash card"""
                     data_lists.append(data_list)
 
                 flex_messages = [
-                    create_flex_dictionary_card(pos, chinese, current_time, us_pron, uk_pron, word)
-                    for pos, chinese, current_time, us_pron, uk_pron, word
-                    in zip(data_lists[2], data_lists[3], data_lists[0], data_lists[5], data_lists[6], data_lists[1])
+                    review_dic_flex_message(current_time, word_name)
+                    for current_time, word_name
+                    in zip(data_lists[0], data_lists[1])
                 ]
                 user_card_index[user_id] = 0
 
