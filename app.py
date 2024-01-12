@@ -659,7 +659,6 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     }
 
 
-
 # 函數：一般查看字典卡
 def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word):
     # 將 current_time 轉換為 datetime 對象
@@ -928,6 +927,74 @@ def review_flashcard_flex_message(current_time, deck_name, front_list):
                 }
             ],
             "spacing": "sm"
+        }
+    }
+
+
+# 函數：複習字典卡
+def review_dic_flex_message(current_time, word_name):
+    # 將 current_time 轉換為 datetime 對象
+    current_time_dt = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
+    # 格式化為只包含日期的字符串
+    formatted_date = current_time_dt.strftime("%Y-%m-%d")
+
+    return {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {
+                    "type": "text",
+                    "text": "字典卡",
+                    "color": "#1DB446",
+                    "size": "sm",
+                    "weight": "bold"
+                },
+                {
+                    "type": "text",
+                    "text": word_name,
+                    "weight": "bold",
+                    "size": "xxl",
+                    "margin": "md"
+                },
+                {
+                    "type": "separator",
+                    "margin": "xxl"
+                },
+                {
+                    "type": "text",
+                    "text": f"建立日期 {formatted_date}",
+                    "color": "#aaaaaa",
+                    "align": "end",
+                    "size": "sm",
+                    "margin": "sm"
+                },
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "margin": "xxl",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "box",
+                            "layout": "baseline",
+                            "spacing": "sm",
+                            "contents": []
+                        },
+                        {
+                            "type": "button",
+                            "action": {
+                                "type": "uri",
+                                "label": "查看答案",
+                                "uri": f"查看字典單字 {word_name}"
+                            },
+                            "style": "secondary",
+                            "height": "sm"
+                        }
+                    ]
+                }
+            ]
         }
     }
 
@@ -2886,7 +2953,7 @@ flashcard/flash card"""
                         }
                     )
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                user_example_lists[user_id] = data_lists[4]
+                data_lists_list[user_id] = data_lists
                 user_states[user_id] = 'waiting_for_choosing_example_button'
 
 
@@ -2894,13 +2961,21 @@ flashcard/flash card"""
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_example_button':
         if "查看字典例句" in user_input:
             check_word_name = user_input.split()[1]
-            send_message_list = []  # Linebot要一次發送多個訊息需要先把訊息用list包起來
-            for reply_example in user_example_lists[user_id]:
-                if len(send_message_list) < 5:  # Linebot一次發送訊息不能超過五則
-                    send_message_list.append(
-                        TextSendMessage(text=f"{check_word_name}\n{reply_example}")
-                    )
-            line_bot_api.reply_message(event.reply_token, send_message_list)
+            if check_word_name in data_lists_list.get(user_id, [[], [], [], [], [], [], []])[1]:
+                # 找到相應的單字，獲取索引
+                word_index = data_lists_list[user_id][1].index(check_word_name)
+
+                # 根據索引獲取相應的數據
+                example_list = data_lists_list[user_id][4][word_index]
+
+                send_message_list = []  # Linebot要一次發送多個訊息需要先把訊息用list包起來
+                for reply_example in example_list:
+                    if len(send_message_list) < 5:  # Linebot一次發送訊息不能超過五則
+                        send_message_list.append(
+                            TextSendMessage(text=f"{check_word_name}\n{reply_example}")
+                        )
+                if send_message_list:
+                    line_bot_api.reply_message(event.reply_token, send_message_list)
 
 
 
