@@ -2857,7 +2857,7 @@ flashcard/flash card"""
                     user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
-                user_states[user_id] = 'waiting_for_see_more_cards'
+                user_states[user_id] = 'waiting_for_choosing_see_more_or_example_list_buttons'
 
         elif sheet_type == "閃卡卡片盒":
             if sheet_url:
@@ -2907,7 +2907,7 @@ flashcard/flash card"""
                     user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
-                user_states[user_id] = 'waiting_for_see_more_cards'
+                user_states[user_id] = 'waiting_for_choosing_see_more_or_example_list_buttons'
         elif sheet_type == "字典卡片盒":
             if sheet_url:
                 # 進入google sheet資料庫
@@ -2961,10 +2961,10 @@ flashcard/flash card"""
                     user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 data_lists_list[user_id] = data_lists
-                user_states[user_id] = 'waiting_for_see_more_cards'
+                user_states[user_id] = 'waiting_for_choosing_see_more_or_example_list_buttons'
 
-    # 選擇學習模式__一般查看＿單字卡＿See more
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_see_more_cards':
+    # 選擇學習模式__一般查看＿See more button or example list button
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_see_more_or_example_list_buttons':
         if "See more cards" in user_input:
             remaining_flex_messages = user_remain_messages.get(user_id, [])
             # 計算剩餘卡片數
@@ -3008,13 +3008,6 @@ flashcard/flash card"""
                 reply_text = '已經沒有更多卡片了。'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
-
-
-
-
-
-    # 一般查看字典卡產生後，使用者選擇按鈕（查看例句）
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_example_button':
         if "查看字典例句" in user_input:
             check_word_name = user_input.split()[1]
             if check_word_name in data_lists_list.get(user_id, [[], [], [], [], [], [], []])[1]:
@@ -3030,6 +3023,7 @@ flashcard/flash card"""
                             TextSendMessage(text=f"{check_word_name}\n{reply_example}")
                         )
                 line_bot_api.reply_message(event.reply_token, send_message_list)
+
 
     # 選擇學習模式__複習模式
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "複習卡片":
