@@ -1,13 +1,20 @@
-# 載入LineBot所需要的套件
-from flask import Flask, request, abort
-
+# 載入LineBot/Notify所需要的套件
+from flask import Flask, request, redirect, session
+import requests
 from linebot import (
     LineBotApi, WebhookHandler
 )
 from linebot.exceptions import (
     InvalidSignatureError
 )
-from linebot.models import *
+from linebot.models import FlexSendMessage, TextSendMessage, MessageEvent, TextMessage
+
+# 載入其他套件
+import pygsheets #Google sheet資料庫串接
+import pandas as pd #資料處理
+import pytz  # 指定時區
+from datetime import datetime #時間
+from bs4 import BeautifulSoup #爬蟲
 
 app = Flask(__name__)
 
@@ -37,8 +44,16 @@ def callback():
     return 'OK'
 
 # LINE NOTIFY區塊
-from flask import Flask, request, redirect, session
-import requests
+def send_notification(access_token, message):
+    line_notify_url = "https://notify-api.line.me/api/notify"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data = {"message": message}
+    response = requests.post(line_notify_url, headers=headers, data=data)
+    return response.json()
+
 
 # 取得 Line Notify 存取令牌的函式
 def get_access_token(client_id, client_secret, code, redirect_uri):
@@ -52,8 +67,6 @@ def get_access_token(client_id, client_secret, code, redirect_uri):
     }
     response = requests.post(line_token_url, data=data)
     return response.json()
-
-app = Flask(__name__)
 
 # Line Notify 設定
 LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
@@ -85,7 +98,7 @@ def notify_callback():
 
     # 驗證 state，確保它與存儲在 session 中的值匹配，防止 CSRF 攻擊
     if state != session.get('state'):
-        return '與「卡片機器人」連動成功🎉現在可以收到卡片盒複習通知囉'
+        return '無效的驗證碼。請再試一次。'
 
     # 使用 code 向 Line Notify 取得存取權杖
     access_token_data = get_access_token(LINE_NOTIFY_CLIENT_ID, LINE_NOTIFY_CLIENT_SECRET, code, LINE_NOTIFY_CALLBACK_URL)
@@ -98,32 +111,12 @@ def notify_callback():
 
     return '卡片盒機器人授權成功'
 
-# 向 Line Notify 發送通知的函式
-def send_notification(access_token, message):
-    line_notify_url = "https://notify-api.line.me/api/notify"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    data = {"message": message}
-    response = requests.post(line_notify_url, headers=headers, data=data)
-    return response.json()
+
 
 
 
 # 訊息傳遞區塊
 ##### 程式編輯都在這個function #####
-# 載入必要的套件
-from datetime import datetime
-from linebot.models import FlexSendMessage, TextSendMessage, BubbleContainer
-import pygsheets
-from linebot.models import MessageEvent, TextMessage
-import pandas as pd
-import pytz  # 指定時區
-import requests
-from bs4 import BeautifulSoup
-
-
 # 函數: 取得所有工作表
 def get_all_worksheets(spreadsheet_url, service_file_path, user_id, deck_name):
     gc = pygsheets.authorize(service_file=service_file_path)
