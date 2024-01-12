@@ -2963,7 +2963,7 @@ flashcard/flash card"""
                 data_lists_list[user_id] = data_lists
                 user_states[user_id] = 'waiting_for_choosing_see_more_or_example_list_buttons'
 
-    # 選擇學習模式__一般查看＿See more button or example list button
+    # 一般查看＿See more及查看例句按鈕
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_see_more_or_example_list_buttons':
         if "See more cards" in user_input:
             remaining_flex_messages = user_remain_messages.get(user_id, [])
@@ -3005,7 +3005,7 @@ flashcard/flash card"""
                     user_states.pop(user_id, None)
             else:
                 # 沒有剩餘卡片，回應使用者
-                reply_text = '已經沒有更多卡片了。'
+                reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
         if "查看字典例句" in user_input:
@@ -3024,8 +3024,7 @@ flashcard/flash card"""
                         )
                 line_bot_api.reply_message(event.reply_token, send_message_list)
 
-
-    # 選擇學習模式__複習模式
+    # 選擇學習模式＿複習模式
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "複習卡片":
         # 提取「」裡面的部分（卡片盒名稱）
         deck_name = user_decks_name[user_id].split('「')[1].split('」')[0]
@@ -3087,9 +3086,10 @@ flashcard/flash card"""
                             "contents": flex_messages[:9] + [generate_see_more_bubble()]
                         }
                     )
+                    user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_states.pop(user_id, None)
-                user_states[user_id] = 'waiting_for_show_word_information'
+                user_states[user_id] = 'waiting_for_see_more_or_show_information'
                 user_flex_messages[user_id] = flex_messages
                 data_lists_list[user_id] = data_lists
 
@@ -3138,9 +3138,10 @@ flashcard/flash card"""
                             "contents": flex_messages[:9] + [generate_see_more_bubble()]
                         }
                     )
+                    user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_states.pop(user_id, None)
-                user_states[user_id] = 'waiting_for_show_flashcard_information'
+                user_states[user_id] = 'waiting_for_see_more_or_show_information'
                 user_flex_messages[user_id] = flex_messages
                 data_lists_list[user_id] = data_lists
                 user_decks_name[user_id] = deck_name
@@ -3195,12 +3196,14 @@ flashcard/flash card"""
                             "contents": flex_messages[:9] + [generate_see_more_bubble()]
                         }
                     )
+                    user_remain_messages[user_id] = flex_messages[9:]
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 data_lists_list[user_id] = data_lists
-                user_states[user_id] = 'waiting_for_show_dic_information'
+                user_states[user_id] = 'waiting_for_see_more_or_show_information'
 
-    # 複習模式查看單字
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_show_word_information':
+    # 複習模式See more以及查看答案、以及查看例句按鈕
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_see_more_or_show_information':
+        # 複習單字卡
         if "查看單字" in user_input:
             check_name = user_input.split()[1]
             if check_name in data_lists_list.get(user_id, [[], [], [], [], [], []])[1]:
@@ -3215,15 +3218,11 @@ flashcard/flash card"""
                 example_list = data_lists_list[user_id][4][word_index]
                 note_list = data_lists_list[user_id][5][word_index]
 
-                # 使用這些數據進行相應的處理，比如構建 Flex Message
                 card = generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
                                              note_list)
-                # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=card))
-
-    # 複習模式查看閃卡
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_show_flashcard_information':
+        # 複習閃卡
         if "卡片背面" in user_input:
             check_front_name = user_input.split()[1]
             if check_front_name in data_lists_list.get(user_id, [[], []])[1]:
@@ -3231,25 +3230,19 @@ flashcard/flash card"""
                 card_index = data_lists_list[user_id][1].index(check_front_name)
 
                 # 根據索引獲取相應的數據
-
                 current_time = data_lists_list[user_id][0][card_index]
                 front_list = data_lists_list[user_id][1][card_index]
                 back_list = data_lists_list[user_id][2][card_index]
 
-                # 使用這些數據進行相應的處理，比如構建 Flex Message
                 flashcard = flashcard_flex_message(user_decks_name[user_id], current_time, front_list, back_list)
-                # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=flashcard))
-
-    # 複習模式查看單字
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_show_dic_information':
+        #複習字典卡
         if "查看字典單字" in user_input:
             check_dic_word_name = user_input.split()[1]
             if check_dic_word_name in data_lists_list.get(user_id, [[], [], [], [], [], [], []])[1]:
                 # 找到相應的單字，獲取索引
                 word_index = data_lists_list[user_id][1].index(check_dic_word_name)
-
                 # 根據索引獲取相應的數據
                 current_time = data_lists_list[user_id][0][word_index]
                 word_name = data_lists_list[user_id][1][word_index]
@@ -3259,11 +3252,8 @@ flashcard/flash card"""
                 us_pron_list = data_lists_list[user_id][5][word_index]
                 uk_pron_list = data_lists_list[user_id][6][word_index]
 
-                # 使用這些數據進行相應的處理，比如構建 Flex Message
                 card = create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_list, uk_pron_list,
                                                    word_name)
-
-                # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=card))
         if "查看字典例句" in user_input:
@@ -3282,8 +3272,49 @@ flashcard/flash card"""
                         )
                 line_bot_api.reply_message(event.reply_token, send_message_list)
 
+        #See more
+        if "See more cards" in user_input:
+            remaining_flex_messages = user_remain_messages.get(user_id, [])
+            # 計算剩餘卡片數
+            remaining_card_count = len(remaining_flex_messages)
+            # 如果還有剩餘卡片
+            if remaining_card_count > 0:
+                # 計算要展示的卡片數量
+                display_card_count = min(remaining_card_count, 10)
+                # 取出要展示的卡片
+                display_flex_messages = remaining_flex_messages[:display_card_count]
+                # 更新剩餘卡片
+                user_remain_messages[user_id] = remaining_flex_messages[display_card_count:]
 
+                # 構建 Flex Message
+                if remaining_card_count > 10:
+                    # 超過 10 張卡片，使用 Carousel Flex Message 加上 See More 按鈕
+                    carousel_flex_message = FlexSendMessage(
+                        alt_text="Carousel Flex Message",
+                        contents={
+                            "type": "carousel",
+                            "contents": display_flex_messages[:9] + [generate_see_more_bubble()]
+                        }
+                    )
+                else:
+                    # 少於等於 10 張卡片，直接使用 Carousel Flex Message
+                    carousel_flex_message = FlexSendMessage(
+                        alt_text="Carousel Flex Message",
+                        contents={
+                            "type": "carousel",
+                            "contents": display_flex_messages
+                        }
+                    )
 
+                # 回覆 Flex Message
+                line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+                # 如果沒有剩餘卡片，更新使用者狀態
+                if remaining_card_count <= 0:
+                    user_states.pop(user_id, None)
+            else:
+                # 沒有剩餘卡片，回應使用者
+                reply_text = '已經沒有更多卡片了'
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
     # 讀取錯誤情況
     else:
