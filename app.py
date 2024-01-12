@@ -660,6 +660,11 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
 
 
 def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word):
+    # 檢查是否有 null 元素
+    if any(e is None for e in [pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word]):
+        # 如果有 null 元素，可以返回一個預設的 FlexSendMessage 或其他處理方式
+        return FlexSendMessage(alt_text="Error: Null elements in data", contents={})
+
     # 將 current_time 轉換為 datetime 對象
     current_time_dt = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
     # 格式化為只包含日期的字符串
@@ -721,6 +726,7 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
             "styles": {"footer": {"separator": True}},
         },
     )
+
 
 # 函數：查看更多卡片
 def generate_see_more_bubble():
