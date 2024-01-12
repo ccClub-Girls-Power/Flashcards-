@@ -690,8 +690,7 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
             ],
         },
         {"type": "separator", "margin": "xxl"},
-        {"type": "text", "text": f"建立日期 {formatted_date}", "size": "sm", "margin": "sm", "color": "#aaaaaa",
-         "align": "end"},
+        {"type": "text", "text": f"建立日期 {formatted_date}", "size": "sm", "margin": "sm", "color": "#aaaaaa", "align": "end"},
         {
             "type": "box",
             "layout": "vertical",
@@ -722,7 +721,6 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
             "styles": {"footer": {"separator": True}},
         },
     )
-
 
 # 函數：查看更多卡片
 def generate_see_more_bubble():
@@ -2845,49 +2843,30 @@ flashcard/flash card"""
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                # 將數據分開
-                for name, data_list in zip(
-                        ["Current Time List", "Word List", "Pos List", "Chinese List", "Example List", "US Pron List",
-                         "UK Pron List"],
-                        [current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list, uk_pron_list]
-                ):
-                    columns_list.append(name)
-                    data_lists.append(data_list)
+                flex_message = create_flex_dictionary_card(data_lists[2][0], data_lists[3][0], data_lists[0][0],
+                                                           data_lists[5][0], data_lists[6][0], data_lists[1][0])
 
-                # 檢查 data_lists 中的元素是否為有效值
-                if any(e is None for e in data_lists):
-                    # 如果有 null 元素，返回一條文字訊息
-                    error_message = TextSendMessage(
-                        text="Error: Null elements in data_lists. Unable to create Flex Message.")
-                    line_bot_api.reply_message(event.reply_token, error_message)
-                    return
-
-                flex_messages = [
-                    create_flex_dictionary_card(pos, chinese, current_time, us_pron, uk_pron, word)
-                    for pos, chinese, current_time, us_pron, uk_pron, word
-                    in zip(data_lists[2], data_lists[3], data_lists[0], data_lists[5], data_lists[6], data_lists[1])
-                ]
-
-                user_card_index[user_id] = 0
-                if len(flex_messages) <= 10:
-                    # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages
-                        }
-                    )
-                else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages[:9] + [generate_see_more_bubble()]
-                        }
-                    )
-                line_bot_api.reply_message(event.reply_token, carousel_flex_message)
+                # user_card_index[user_id] = 0
+                # if len(flex_messages) <= 10:
+                #     # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
+                #     carousel_flex_message = FlexSendMessage(
+                #         alt_text="Carousel Flex Message",
+                #         contents={
+                #             "type": "carousel",
+                #             "contents": flex_messages
+                #         }
+                #     )
+                # else:
+                #     # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
+                #     carousel_flex_message = FlexSendMessage(
+                #         alt_text="Carousel Flex Message",
+                #         contents={
+                #             "type": "carousel",
+                #             "contents": flex_messages[:9] + [generate_see_more_bubble()]
+                #         }
+                #     )
+                flex_reply_message = FlexSendMessage(alt_text="字典卡", contents=flex_message)
+                line_bot_api.reply_message(event.reply_token, flex_message)
 
 
 
