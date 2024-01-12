@@ -3231,13 +3231,9 @@ flashcard/flash card"""
                         )
                 line_bot_api.reply_message(event.reply_token, send_message_list)
 
-
-
-
-
     else:
         # 其他操作失敗的情況
-        reply_text = '機器人🤖讀取失敗，請重新嘗試'
+        reply_text = '機器人🤖讀取失敗，請重新嘗試\n(對不起我是新手機器人，需要時間熟悉工作，如有不便請見諒！）'
         # 回覆使用者
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
