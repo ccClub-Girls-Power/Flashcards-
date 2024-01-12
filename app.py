@@ -2967,9 +2967,11 @@ flashcard/flash card"""
 
                 # 根據索引獲取相應的數據
                 example_list = data_lists_list[user_id][4][word_index]
+                message = TextSendMessage(text=example_list)
+                line_bot_api.reply_message(event.reply_token, message)
 
-                
-                line_bot_api.reply_message(event.reply_token, example_list)
+
+
 
 
 
