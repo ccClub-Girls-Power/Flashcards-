@@ -2968,14 +2968,8 @@ flashcard/flash card"""
                 # 根據索引獲取相應的數據
                 example_list = data_lists_list[user_id][4][word_index]
 
-                send_message_list = []  # Linebot要一次發送多個訊息需要先把訊息用list包起來
-                for reply_example in example_list:
-                    if len(send_message_list) < 5:  # Linebot一次發送訊息不能超過五則
-                        send_message_list.append(
-                            TextSendMessage(text=f"{check_word_name}\n{reply_example}")
-                        )
-                if send_message_list:
-                    line_bot_api.reply_message(event.reply_token, send_message_list)
+                
+                line_bot_api.reply_message(event.reply_token, example_list)
 
 
 
