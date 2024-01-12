@@ -3215,6 +3215,8 @@ flashcard/flash card"""
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=card))
+                user_states[user_id] = 'waiting_for_choosing_example_button'
+
 
 
 
