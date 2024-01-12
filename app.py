@@ -2886,7 +2886,7 @@ flashcard/flash card"""
                         }
                     )
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                user_example_lists[user_id] = example_list
+                user_example_lists[user_id] = data_lists[4]
                 user_states[user_id] = 'waiting_for_choosing_example_button'
 
 
