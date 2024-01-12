@@ -659,6 +659,7 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     }
 
 
+# 函數：一般查看字典卡
 def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word):
     # 將 current_time 轉換為 datetime 對象
     current_time_dt = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
@@ -710,7 +711,7 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
                 "type": "box",
                 "layout": "vertical",
                 "contents": [
-                    {"type": "text", "text": "查字典", "weight": "bold", "color": "#1DB446", "size": "sm"},
+                    {"type": "text", "text": "字典卡", "weight": "bold", "color": "#1DB446", "size": "sm"},
                     {"type": "text", "text": word, "weight": "bold", "size": "xxl", "margin": "md"},
                     {"type": "separator", "margin": "xxl"},
                     {"type": "box", "layout": "vertical", "margin": "xxl", "spacing": "sm", "contents": flex_contents},
@@ -2868,7 +2869,7 @@ flashcard/flash card"""
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
 
-            
+
 
 
     # 選擇學習模式__複習模式
