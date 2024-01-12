@@ -2965,7 +2965,7 @@ flashcard/flash card"""
                 # 找到相應的單字，獲取索引
                 word_index = data_lists_list[user_id][1].index(check_word_name)
                 # 根據索引獲取相應的數據
-                example_list = data_lists_list[user_id][4][word_index]
+                example_list = data_lists_list[user_id][4][word_index].split(",")
 
                 send_message_list = []  # Linebot要一次發送多個訊息需要先把訊息用list包起來
                 for reply_example in example_list:
