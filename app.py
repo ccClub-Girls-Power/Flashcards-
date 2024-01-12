@@ -948,6 +948,7 @@ user_card_pointers = {}
 user_flex_messages = {}
 user_card_index = {}
 data_lists_list = {}
+user_example_lists = {}
 
 
 # 處理訊息事件的函數
@@ -2885,8 +2886,21 @@ flashcard/flash card"""
                         }
                     )
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                user_flex_messages[user_id] = flex_messages
+                user_example_lists[user_id] = example_list
+                user_states[user_id] = 'waiting_for_choosing_example_button'
 
+
+    # 字典卡產生後，使用者選擇按鈕（查看例句）
+    elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_example_button':
+        if "查看字典例句" in user_input:
+            check_word_name = user_input.split()[1]
+            send_message_list = []  # Linebot要一次發送多個訊息需要先把訊息用list包起來
+            for reply_example in user_example_lists[user_id]:
+                if len(send_message_list) < 5:  # Linebot一次發送訊息不能超過五則
+                    send_message_list.append(
+                        TextSendMessage(text=f"{check_word_name}\n{reply_example}")
+                    )
+            line_bot_api.reply_message(event.reply_token, send_message_list)
 
 
 
