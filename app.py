@@ -312,7 +312,7 @@ def searching_word_to_sheet(current_time, service_file_path, spreadsheet_url, sh
             '單字': [word],
             '詞性': [','.join(pos['pos'] for pos in pos_list)],
             '中文': [','.join(pos['chinese_definition'] for pos in pos_list)],
-            '例句': [','.join(example for example in example_list)],
+            '例句': ['//'.join(example for example in example_list)],
             'US Pronunciation': [us_pronunciation_url] if us_pronunciation_url else [''],
             'UK Pronunciation': [uk_pronunciation_url] if uk_pronunciation_url else ['']
         })
@@ -2956,8 +2956,7 @@ flashcard/flash card"""
                 data_lists_list[user_id] = data_lists
                 user_states[user_id] = 'waiting_for_choosing_example_button'
 
-
-    # 字典卡產生後，使用者選擇按鈕（查看例句）
+    # 一般查看字典卡產生後，使用者選擇按鈕（查看例句）
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_example_button':
         if "查看字典例句" in user_input:
             check_word_name = user_input.split()[1]
@@ -2965,7 +2964,7 @@ flashcard/flash card"""
                 # 找到相應的單字，獲取索引
                 word_index = data_lists_list[user_id][1].index(check_word_name)
                 # 根據索引獲取相應的數據
-                example_list = data_lists_list[user_id][4][word_index].split(",")
+                example_list = data_lists_list[user_id][4][word_index].split("//")
 
                 send_message_list = []  # Linebot要一次發送多個訊息需要先把訊息用list包起來
                 for reply_example in example_list:
@@ -2974,9 +2973,6 @@ flashcard/flash card"""
                             TextSendMessage(text=f"{check_word_name}\n{reply_example}")
                         )
                 line_bot_api.reply_message(event.reply_token, send_message_list)
-
-
-
 
     # 選擇學習模式__複習模式
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "複習卡片":
@@ -3173,7 +3169,6 @@ flashcard/flash card"""
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=card))
-
 
     # 複習模式查看閃卡
     elif user_id in user_states and user_states[user_id] == 'waiting_for_show_flashcard_information':
