@@ -659,8 +659,11 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     }
 
 
-def create_flex_dictionary_card(pos, chinese, formatted_date, us_pron_url, uk_pron_url, word):
-    # 以逗號分隔的字串轉成清單
+def create_flex_dictionary_card(pos, chinese, current_time, us_pron_url, uk_pron_url, word):
+    # 將 current_time 轉換為 datetime 對象
+    current_time_dt = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
+    # 格式化為只包含日期的字符串
+    formatted_date = current_time_dt.strftime("%Y-%m-%d")
     pos_list = pos.split(",")
     chinese_list = chinese.split(",")
 
@@ -2841,11 +2844,10 @@ flashcard/flash card"""
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                flex_messages = [create_flex_message(word, create_flex_contents(pos, chinese, current_time, us_pron,
-                                                                                uk_pron, word)) for
-                                 word, pos, chinese, current_time, us_pron, uk_pron in
-                                 zip(data_lists[1], data_lists[2], data_lists[3], data_lists[0], data_lists[5],
-                                     data_lists[6])]
+                flex_messages = [create_flex_dictionary_card(pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word)for
+                                 pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word in
+                                 zip(data_lists[2], data_lists[3], data_lists[0], data_lists[5], data_lists[6],
+                                     data_lists[1])]
 
                 user_card_index[user_id] = 0
                 if len(flex_messages) <= 10:
@@ -2868,7 +2870,6 @@ flashcard/flash card"""
                     )
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
-
 
 
     # 選擇學習模式__複習模式
