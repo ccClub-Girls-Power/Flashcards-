@@ -2844,8 +2844,8 @@ flashcard/flash card"""
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                flex_messages = [create_flex_dictionary_card(pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word)for
-                                 pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word in
+                flex_messages = [create_flex_dictionary_card(pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word_list)for
+                                 pos_list, chinese_list, current_time_list, us_pron_list, uk_pron_list, word_list in
                                  zip(data_lists[2], data_lists[3], data_lists[0], data_lists[5], data_lists[6],
                                      data_lists[1])]
 
