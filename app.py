@@ -15,14 +15,14 @@ import pandas as pd  # 資料整理
 import pytz  # 指定時區
 from datetime import datetime  # 時間
 from bs4 import BeautifulSoup  # 爬蟲
+import os
 
 app = Flask(__name__)
 
-# 必須放上自己的Channel Access Token
-line_bot_api = LineBotApi(Jill_linebot_API)
-# 必須放上自己的Channel Secret
-handler = WebhookHandler(jill_linebot_channel_secret)
-
+# 必須放上自己的Channel Access Token（為了隱密性，用環境變數）
+line_bot_api = LineBotApi(os.environ.get('jill_linebot_api'))
+# 必須放上自己的Channel Secret（為了隱密性，用環境變數）
+handler = WebhookHandler(os.environ.get('jill_linebot_channel_secret'))
 
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
