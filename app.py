@@ -235,20 +235,16 @@ def insert_word_card_content_to_sheet(current_time, deck_name, card_contents, se
 # 函數: 查單字爬蟲
 def lookup_word(word):
     url = f"https://dictionary.cambridge.org/zht/%E8%A9%9E%E5%85%B8/%E8%8B%B1%E8%AA%9E-%E6%BC%A2%E8%AA%9E-%E7%B9%81%E9%AB%94/{word}"
-
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
-
     entries = soup.select(".entry-body__el")
 
     pos_list = []
     example_list = []
-    us_pronunciation_url = None
-    uk_pronunciation_url = None
 
     for i, entry in enumerate(entries, 1):
         pos_element = entry.select_one(".pos.dpos")
@@ -663,34 +659,31 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     }
 
 
-# 函數：一般查看字典卡
-def create_flex_contents(pos_list, formatted_date, us_pron_url, uk_pron_url, searching_word):
+# 函數：一般查看字典卡（變動資料＋固定資料）
+def create_flex_contents(pos, chinese, formatted_date, us_pron_url, uk_pron_url, word):
     flex_contents = []  # 整理 flex message 的變動資料(依據各個單字詞性多寡跑迴圈)
-    for i in pos_list:
-        part_of_speech = i["pos"]
-        definition = i["chinese_definition"]
-        obj = {
-            "type": "box",
-            "layout": "horizontal",
-            "contents": [
-                {
-                    "type": "text",
-                    "text": part_of_speech,
-                    "size": "sm",
-                    "color": "#555555",
-                    "flex": 0,
-                },
-                {
-                    "type": "text",
-                    "text": definition,
-                    "wrap": True,
-                    "size": "sm",
-                    "color": "#111111",
-                    "align": "end",
-                },
-            ],
-        }
-        flex_contents.append(obj)
+    obj = {
+        "type": "box",
+        "layout": "horizontal",
+        "contents": [
+            {
+                "type": "text",
+                "text": pos,
+                "size": "sm",
+                "color": "#555555",
+                "flex": 0,
+            },
+            {
+                "type": "text",
+                "text": chinese,
+                "wrap": True,
+                "size": "sm",
+                "color": "#111111",
+                "align": "end",
+            },
+        ],
+    }
+    flex_contents.append(obj)
 
     # 整理 flex message 固定內容的資料
     fixed_contents = [
@@ -748,7 +741,7 @@ def create_flex_contents(pos_list, formatted_date, us_pron_url, uk_pron_url, sea
                     "action": {
                         "type": "message",
                         "label": "查看例句",
-                        "text": f"查看例句 {searching_word}",
+                        "text": f"查看字典例句 {word}",
                     },
                 },
             ],
@@ -758,9 +751,9 @@ def create_flex_contents(pos_list, formatted_date, us_pron_url, uk_pron_url, sea
 
     return flex_contents
 
-def create_flex_message(user_input, searching_word, flex_contents):
+def create_flex_message(word, flex_contents):
     return FlexSendMessage(
-        alt_text=user_input,
+        alt_text=word,
         contents={
             "type": "bubble",
             "body": {
@@ -776,7 +769,7 @@ def create_flex_message(user_input, searching_word, flex_contents):
                     },
                     {
                         "type": "text",
-                        "text": searching_word,
+                        "text": word,
                         "weight": "bold",
                         "size": "xxl",
                         "margin": "md",
@@ -2907,24 +2900,11 @@ flashcard/flash card"""
                 current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list, uk_pron_list = process_flashcard_deck_v3(
                     all_data, column_names)
 
-                columns_list = []
-                data_lists = []
-                # 將數據分開
-                for name, data_list in zip(
-                        ["Current Time List", "Word List", "Pos List", "Chinese List", "Example List", "US PRON LIST",
-                         "UK PRON LIST"],
-                        [current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list,
-                         uk_pron_list]):
-                    columns_list.append(name)
-                    data_lists.append(data_list)
-
-                # 調用 create_flex_contents 以獲取 flex_contents
-                flex_contents = create_flex_contents(pos_list, current_time_list[0], us_pron_list[0], uk_pron_list[0],
-                                                     word_list[0])
-
-                # 調用 create_flex_message 以獲取 flex_message
-                flex_messages = create_flex_message(word_name=word_list[0], current_time=current_time_list[0],
-                                                   flex_contents=flex_contents)
+                flex_messages = [create_flex_message(word, create_flex_contents(pos, chinese, current_time, us_pron,
+                                                                                uk_pron, word)) for
+                                 word, pos, chinese, current_time, us_pron, uk_pron in
+                                 zip(word_list, pos_list, chinese_list, current_time_list, us_pron_list,
+                                     uk_pron_list)]
 
                 user_card_index[user_id] = 0
                 if len(flex_messages) <= 10:
