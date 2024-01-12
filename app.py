@@ -1,5 +1,5 @@
 # 載入LineBot/Notify所需要的套件
-from flask import Flask, request, redirect, session
+from flask import Flask, request, redirect, session, abort
 import requests
 from linebot import (
     LineBotApi, WebhookHandler
@@ -10,11 +10,11 @@ from linebot.exceptions import (
 from linebot.models import FlexSendMessage, TextSendMessage, MessageEvent, TextMessage
 
 # 載入其他套件
-import pygsheets #Google sheet資料庫串接
-import pandas as pd #資料處理
+import pygsheets  # Google sheet資料庫串接
+import pandas as pd  # 資料整理
 import pytz  # 指定時區
-from datetime import datetime #時間
-from bs4 import BeautifulSoup #爬蟲
+from datetime import datetime  # 時間
+from bs4 import BeautifulSoup  # 爬蟲
 
 app = Flask(__name__)
 
@@ -43,6 +43,7 @@ def callback():
 
     return 'OK'
 
+
 # LINE NOTIFY區塊
 def send_notification(access_token, message):
     line_notify_url = "https://notify-api.line.me/api/notify"
@@ -68,10 +69,12 @@ def get_access_token(client_id, client_secret, code, redirect_uri):
     response = requests.post(line_token_url, data=data)
     return response.json()
 
+
 # Line Notify 設定
 LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
 LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
 LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
+
 
 # Line Notify 授權路由（使用者可以透過這個網頁取得我們的Notify授權通知)
 @app.route('/notify_auth', methods=['GET'])
@@ -89,6 +92,7 @@ def notify_auth():
         f'&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&state={state}'
     )
 
+
 # Line Notify 授權後的回調路由
 @app.route('/callback', methods=['POST'])
 def notify_callback():
@@ -101,7 +105,8 @@ def notify_callback():
         return '無效的驗證碼。請再試一次。'
 
     # 使用 code 向 Line Notify 取得存取權杖
-    access_token_data = get_access_token(LINE_NOTIFY_CLIENT_ID, LINE_NOTIFY_CLIENT_SECRET, code, LINE_NOTIFY_CALLBACK_URL)
+    access_token_data = get_access_token(LINE_NOTIFY_CLIENT_ID, LINE_NOTIFY_CLIENT_SECRET, code,
+                                         LINE_NOTIFY_CALLBACK_URL)
 
     # 提取存取權杖
     access_token = access_token_data.get("access_token")
@@ -110,9 +115,6 @@ def notify_callback():
     send_notification(access_token, "與「卡片機器人」連動成功🎉現在可以收到卡片盒複習通知囉")
 
     return '卡片盒機器人授權成功'
-
-
-
 
 
 # 訊息傳遞區塊
@@ -550,95 +552,95 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
     formatted_date = current_time_dt.strftime("%Y-%m-%d")
 
     return {
-      "type": "bubble",
-      "body": {
-        "type": "box",
-        "layout": "vertical",
-        "contents": [
-          {
-            "type": "text",
-            "text": "閃卡",
-            "weight": "bold",
-            "color": "#1DB446",
-            "size": "sm"
-          },
-          {
-            "type": "text",
-            "weight": "bold",
-            "size": "xxl",
-            "text": deck_name,
-            "margin": "md"
-          },
-          {
-            "type": "separator",
-            "margin": "xl"
-          },
-          {
+        "type": "bubble",
+        "body": {
             "type": "box",
             "layout": "vertical",
-            "margin": "lg",
-            "spacing": "sm",
             "contents": [
-              {
-                "type": "box",
-                "layout": "baseline",
-                "spacing": "sm",
-                "contents": [
-                  {
+                {
                     "type": "text",
-                    "text": "卡片正面",
+                    "text": "閃卡",
+                    "weight": "bold",
+                    "color": "#1DB446",
+                    "size": "sm"
+                },
+                {
+                    "type": "text",
+                    "weight": "bold",
+                    "size": "xxl",
+                    "text": deck_name,
+                    "margin": "md"
+                },
+                {
+                    "type": "separator",
+                    "margin": "xl"
+                },
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "margin": "lg",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "box",
+                            "layout": "baseline",
+                            "spacing": "sm",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "卡片正面",
+                                    "color": "#aaaaaa",
+                                    "size": "sm",
+                                    "flex": 2
+                                },
+                                {
+                                    "type": "text",
+                                    "text": front_list,
+                                    "wrap": True,
+                                    "color": "#666666",
+                                    "size": "sm",
+                                    "flex": 5
+                                }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "baseline",
+                            "spacing": "sm",
+                            "contents": [
+                                {
+                                    "type": "text",
+                                    "text": "卡片背面",
+                                    "color": "#aaaaaa",
+                                    "size": "sm",
+                                    "flex": 2
+                                },
+                                {
+                                    "type": "text",
+                                    "text": back_list,
+                                    "wrap": True,
+                                    "color": "#666666",
+                                    "size": "sm",
+                                    "flex": 5
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "separator",
+                    "margin": "xl"
+                },
+                {
+                    "type": "text",
+                    "text": f"建立日期 {formatted_date}",
+                    "size": "sm",
+                    "margin": "sm",
                     "color": "#aaaaaa",
-                    "size": "sm",
-                    "flex": 2
-                  },
-                  {
-                    "type": "text",
-                    "text": front_list,
-                    "wrap": True,
-                    "color": "#666666",
-                    "size": "sm",
-                    "flex": 5
-                  }
-                ]
-              },
-              {
-                "type": "box",
-                "layout": "baseline",
-                "spacing": "sm",
-                "contents": [
-                  {
-                    "type": "text",
-                    "text": "卡片背面",
-                    "color": "#aaaaaa",
-                    "size": "sm",
-                    "flex": 2
-                  },
-                  {
-                    "type": "text",
-                    "text": back_list,
-                    "wrap": True,
-                    "color": "#666666",
-                    "size": "sm",
-                    "flex": 5
-                  }
-                ]
-              }
+                    "align": "end"
+                }
             ]
-          },
-          {
-            "type": "separator",
-            "margin": "xl"
-          },
-          {
-            "type": "text",
-            "text": f"建立日期 {formatted_date}",
-            "size": "sm",
-            "margin": "sm",
-            "color": "#aaaaaa",
-            "align": "end"
-          }
-        ]
-      }
+        }
     }
 
 
@@ -835,6 +837,7 @@ def review_flashcard_flex_message(current_time, deck_name, front_list):
         }
     }
 
+
 # 使用者狀態、卡片盒字典、front.back_input
 user_states = {}
 user_decks = {}
@@ -924,7 +927,8 @@ def handle_message(event):
         user_states[user_id] = 'waiting_for_choosing_type'
 
     ######閃卡卡片盒######
-    elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_type' and user_input == '我要建立閃卡':
+    elif user_id in user_states and user_states[
+        user_id] == 'waiting_for_choosing_type' and user_input == '我要建立閃卡':
         reply_text = '請輸入閃卡卡片盒名稱'
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
@@ -2666,10 +2670,10 @@ flashcard/flash card"""
                     data_lists.append(data_list)
 
                 flex_messages = [generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
-                                                           note_list) for current_time, word_name, pos_list, chinese_list,
-                                     example_list, note_list in
-                                     zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
-                                         data_lists[4], data_lists[5])]
+                                                       note_list) for current_time, word_name, pos_list, chinese_list,
+                                 example_list, note_list in
+                                 zip(data_lists[0], data_lists[1], data_lists[2], data_lists[3],
+                                     data_lists[4], data_lists[5])]
 
                 user_card_index[user_id] = 0
                 if len(flex_messages) <= 10:
@@ -2716,7 +2720,8 @@ flashcard/flash card"""
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                flex_messages = [flashcard_flex_message(deck_name, current_time, front_list, back_list) for current_time, front_list, back_list in
+                flex_messages = [flashcard_flex_message(deck_name, current_time, front_list, back_list) for
+                                 current_time, front_list, back_list in
                                  zip(data_lists[0], data_lists[1], data_lists[2])]
 
                 user_card_index[user_id] = 0
@@ -2786,8 +2791,9 @@ flashcard/flash card"""
                     columns_list.append(name)
                     data_lists.append(data_list)
 
-                flex_messages = [review_words_flex_message(current_time, word_name, pos_list) for current_time, word_name, pos_list in
-                                     zip(data_lists[0], data_lists[1], data_lists[2])]
+                flex_messages = [review_words_flex_message(current_time, word_name, pos_list) for
+                                 current_time, word_name, pos_list in
+                                 zip(data_lists[0], data_lists[1], data_lists[2])]
 
                 user_card_index[user_id] = 0
                 if len(flex_messages) <= 10:
@@ -2891,7 +2897,7 @@ flashcard/flash card"""
 
                 # 使用這些數據進行相應的處理，比如構建 Flex Message
                 card = generate_flex_message(current_time, word_name, pos_list, chinese_list, example_list,
-                                                           note_list)
+                                             note_list)
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=card))
@@ -2912,7 +2918,7 @@ flashcard/flash card"""
                 back_list = data_lists_list[user_id][2][card_index]
 
                 # 使用這些數據進行相應的處理，比如構建 Flex Message
-                flashcard = flashcard_flex_message(user_decks_name[user_id], current_time, front_list,back_list)
+                flashcard = flashcard_flex_message(user_decks_name[user_id], current_time, front_list, back_list)
                 # 發送 Flex Message 給用戶
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=flashcard))
