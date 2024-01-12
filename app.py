@@ -2812,48 +2812,6 @@ flashcard/flash card"""
                 line_bot_api.reply_message(event.reply_token, carousel_flex_message)
                 user_flex_messages[user_id] = flex_messages
 
-        elif sheet_type == "字典卡片盒":
-            if sheet_url:
-                # 進入google sheet資料庫
-                gc = pygsheets.authorize(service_file='./client_secret.json')
-                spreadsheet = gc.open_by_url(sheet_url)
-                worksheet = spreadsheet.worksheet_by_title(sheet_name)
-                # 獲取所有資料
-                all_data = worksheet.get_all_values()
-                # 第一行是欄位名稱
-                column_names = all_data[0]
-                # 調用函數獲取數據
-                current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list, uk_pron_list = process_flashcard_deck_v3(
-                    all_data, column_names)
-
-                flex_messages = [create_flex_message(word, create_flex_contents(pos, chinese, current_time, us_pron,
-                                                                                uk_pron, word)) for
-                                 word, pos, chinese, current_time, us_pron, uk_pron in
-                                 zip(word_list, pos_list, chinese_list, current_time_list, us_pron_list,
-                                     uk_pron_list)]
-
-                user_card_index[user_id] = 0
-                if len(flex_messages) <= 10:
-                    # 少於等於 10 條 Bubble Messages，使用 Carousel Flex Message
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages
-                        }
-                    )
-                else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個Bubble Messages)
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": flex_messages[:9] + [generate_see_more_bubble()]
-                        }
-                    )
-                line_bot_api.reply_message(event.reply_token, carousel_flex_message)
-                user_flex_messages[user_id] = flex_messages
-
 
     # 選擇學習模式__複習模式
     elif user_id in user_states and user_states[user_id] == 'waiting_for_choosing_mode' and user_input == "複習卡片":
