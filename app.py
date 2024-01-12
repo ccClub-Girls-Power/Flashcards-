@@ -660,11 +660,6 @@ def flashcard_flex_message(deck_name, current_time, front_list, back_list):
 
 
 def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word):
-    # 檢查是否有 null 元素
-    if any(e is None for e in [pos_list, chinese_list, current_time, us_pron_url, uk_pron_url, word]):
-        # 如果有 null 元素，可以返回一個預設的 FlexSendMessage 或其他處理方式
-        return FlexSendMessage(alt_text="Error: Null elements in data", contents={})
-
     # 將 current_time 轉換為 datetime 對象
     current_time_dt = datetime.strptime(current_time, "%Y-%m-%d %H:%M:%S")
     # 格式化為只包含日期的字符串
@@ -695,7 +690,8 @@ def create_flex_dictionary_card(pos_list, chinese_list, current_time, us_pron_ur
             ],
         },
         {"type": "separator", "margin": "xxl"},
-        {"type": "text", "text": f"建立日期 {formatted_date}", "size": "sm", "margin": "sm", "color": "#aaaaaa", "align": "end"},
+        {"type": "text", "text": f"建立日期 {formatted_date}", "size": "sm", "margin": "sm", "color": "#aaaaaa",
+         "align": "end"},
         {
             "type": "box",
             "layout": "vertical",
@@ -2848,6 +2844,23 @@ flashcard/flash card"""
                          uk_pron_list]):
                     columns_list.append(name)
                     data_lists.append(data_list)
+
+                # 將數據分開
+                for name, data_list in zip(
+                        ["Current Time List", "Word List", "Pos List", "Chinese List", "Example List", "US Pron List",
+                         "UK Pron List"],
+                        [current_time_list, word_list, pos_list, chinese_list, example_list, us_pron_list, uk_pron_list]
+                ):
+                    columns_list.append(name)
+                    data_lists.append(data_list)
+
+                # 檢查 data_lists 中的元素是否為有效值
+                if any(e is None for e in data_lists):
+                    # 如果有 null 元素，返回一條文字訊息
+                    error_message = TextSendMessage(
+                        text="Error: Null elements in data_lists. Unable to create Flex Message.")
+                    line_bot_api.reply_message(event.reply_token, error_message)
+                    return
 
                 flex_messages = [
                     create_flex_dictionary_card(pos, chinese, current_time, us_pron, uk_pron, word)
