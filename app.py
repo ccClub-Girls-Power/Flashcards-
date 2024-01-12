@@ -156,10 +156,10 @@ def save_card_content_to_sheet(current_time, sheet_title, content_list, service_
         # 將字典轉換為 DataFrame
         df = pd.DataFrame(data)
         # 將 DataFrame 寫入 Google Sheets
-        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行的第一列開始寫入
+        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行開始寫入
         return True  # 儲存成功，返回 True
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -169,21 +169,21 @@ def insert_card_content_to_sheet(current_time, deck_name, card_contents, service
         # 開啟 Google Sheets
         gc = pygsheets.authorize(service_file=service_file_path)
         spreadsheet = gc.open_by_url(spreadsheet_url)
-        # 選擇對應的工作表，如果不存在會自動建立
+        # 選擇對應的工作表
         worksheet = spreadsheet.worksheet_by_title(deck_name)
-        # 讀取工作表內容並轉換為 Pandas DataFrame
+        # 讀取工作表內容並轉換為 DataFrame
         df = worksheet.get_as_df()
-        # 獲取 DataFrame 的形狀
+        # 獲取 DataFrame 的形狀（獲取現有行數）
         num_rows = df.shape[0]
         # 新數據追加到下一行
         start_row = num_rows + 1
-        # 定義要插入的資料，包含新增時間
+        # 定義要插入的資料
         data = [current_time, card_contents[0], card_contents[1]]
         # 在指定的行數插入新數據
         worksheet.insert_rows(start_row, values=[data])
         return start_row
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -200,10 +200,10 @@ def save_word_card_content_to_sheet(current_time, sheet_title, content_list, ser
         # 將字典轉換為 DataFrame
         df = pd.DataFrame(data)
         # 將 DataFrame 寫入 Google Sheets
-        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行的第一列開始寫入
+        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行開始寫入
         return True  # 儲存成功的情況下返回 True
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -217,17 +217,17 @@ def insert_word_card_content_to_sheet(current_time, deck_name, card_contents, se
         worksheet = spreadsheet.worksheet_by_title(deck_name)
         # 讀取工作表內容並轉換為 Pandas DataFrame
         df = worksheet.get_as_df()
-        # 獲取 DataFrame 的形狀
+        # 獲取 DataFrame 的形狀（獲取現有行數）
         num_rows = df.shape[0]
         # 新數據追加到下一行
         start_row = num_rows + 1
-        # 定義要插入的資料，包含新增時間
+        # 定義要插入的資料
         data = [current_time] + card_contents
         # 在指定的行數插入新數據
         worksheet.insert_rows(start_row, values=[data])
         return start_row
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -297,7 +297,7 @@ def lookup_word(word):
     return pos_list, example_list, us_pronunciation_url, uk_pronunciation_url
 
 
-# 函數：儲存字典卡片內容至工作表（建立新工作表+插入標題欄）
+# 函數：儲存字典卡片內容至工作表
 def searching_word_to_sheet(current_time, service_file_path, spreadsheet_url, sheet_title, word, pos_list, example_list,
                             us_pronunciation_url, uk_pronunciation_url):
     try:
@@ -316,10 +316,10 @@ def searching_word_to_sheet(current_time, service_file_path, spreadsheet_url, sh
             'UK Pronunciation': [uk_pronunciation_url] if uk_pronunciation_url else ['']
         })
         # 插入資料到 Google Sheets
-        worksheet.set_dataframe(df, start='A1')  # 從 A1 開始插入 DataFrame 到工作表
+        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行開始寫入
         return True  # 儲存成功的情況下返回 True
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -334,7 +334,7 @@ def searching_word_to_existing_sheet(current_time, service_file_path, spreadshee
         worksheet = spreadsheet.worksheet_by_title(sheet_title)
         # 讀取工作表內容並轉換為 Pandas DataFrame
         df = worksheet.get_as_df()
-        # 獲取 DataFrame 的形狀
+        # 獲取 DataFrame 的形狀（獲取現有行數）
         num_rows = df.shape[0]
         # 新數據追加到下一行
         start_row = num_rows + 1
@@ -349,7 +349,7 @@ def searching_word_to_existing_sheet(current_time, service_file_path, spreadshee
         return start_row
 
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -357,13 +357,11 @@ def searching_word_to_existing_sheet(current_time, service_file_path, spreadshee
 def get_user_worksheets(user_id, spreadsheet_urls, service_file_path):
     # 設定 Google Sheets API 的授權檔案（輸入金鑰）
     gc = pygsheets.authorize(service_file=service_file_path)
-    # 建立一個字典用來存儲各個 spreadsheet 中對應的 user_worksheets
+    # 建立一個字典用來儲存各個 spreadsheet 對應的 user_worksheets
     user_worksheets_dict = {}
-
     # 逐一處理每個 spreadsheet
     for spreadsheet_url in spreadsheet_urls:
         spreadsheet = gc.open_by_url(spreadsheet_url)
-
         # 找到使用者對應的工作表
         user_worksheets = [worksheet.title.split('_')[1] for worksheet in spreadsheet.worksheets() if
                            user_id in worksheet.title]
@@ -372,7 +370,7 @@ def get_user_worksheets(user_id, spreadsheet_urls, service_file_path):
     return user_worksheets_dict
 
 
-# 函數：反查卡片盒類型(工作表對照的資料庫)
+# 函數：反查卡片盒類型(三個卡片盒對應三個不同的資料庫)
 def find_spreadsheet_by_worksheet(worksheet_name, spreadsheet_dict):
     for spreadsheet, worksheets in spreadsheet_dict.items():
         if worksheet_name in worksheets:
@@ -385,7 +383,7 @@ def process_flashcard_deck_v1(all_data, column_names):
 
     # 將數據分配到相應的列表中
     for row in all_data[1:]:
-        if any(row):  # 檢查行是否包含有效數據
+        if any(row):  
             current_time_list.append(row[column_names.index('新增時間')])
             word_list.append(row[column_names.index('單字')])
             pos_list.append(row[column_names.index('詞性')])
@@ -402,7 +400,7 @@ def process_flashcard_deck_v2(all_data, column_names):
 
     # 將數據分配到相應的列表中
     for row in all_data[1:]:
-        if any(row):  # 檢查行是否包含有效數據
+        if any(row):  
             current_time_list.append(row[column_names.index('新增時間')])
             front_list.append(row[column_names.index('卡片正面')])
             back_list.append(row[column_names.index('卡片背面')])
@@ -417,7 +415,7 @@ def process_flashcard_deck_v3(all_data, column_names):
 
     # 將數據分配到相應的列表中
     for row in all_data[1:]:
-        if any(row):  # 檢查行是否包含有效數據
+        if any(row): 
             current_time_list.append(row[column_names.index('新增時間')])
             word_list.append(row[column_names.index('單字')])
             pos_list.append(row[column_names.index('詞性')])
@@ -998,7 +996,7 @@ def review_dic_flex_message(current_time, word_name):
     }
 
 
-# 使用者狀態、卡片盒字典、front.back_input
+# 使用者狀態、各式儲存用的字典
 user_states = {}
 user_decks = {}
 user_word_decks = {}
@@ -1159,7 +1157,7 @@ def handle_message(event):
             )
             line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=reply_text), confirm_message])
             user_decks[user_id] = deck_name  # 儲存使用者選擇的卡片盒
-            user_states.pop(user_id, None)
+            user_states.pop(user_id, None) # 清除用戶狀態
             user_states[user_id] = 'waiting_for_confirm_existing_deck'
         else:
             # 提示使用者確認是否建立新卡片盒
@@ -1232,7 +1230,7 @@ def handle_message(event):
 什麼是卡片盒機器人？
 Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 
-            # 創建兩條回覆訊息
+            # 兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -1428,7 +1426,7 @@ Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 什麼是卡片盒機器人？
 Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 
-            # 創建兩條回覆訊息
+            # 兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -1988,7 +1986,7 @@ noun
 無
 flashcard/flash card"""
 
-            # 創建兩條回覆訊息
+            # 兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -2199,7 +2197,6 @@ flashcard/flash card"""
     """查單字功能"""
     if '查單字' in user_input:
         reply_text = '請輸入想要查詢的英文單字'
-        # 回覆使用者
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
         user_states[user_id] = 'waiting_for_searching_word'
@@ -2977,7 +2974,7 @@ flashcard/flash card"""
                 # 更新剩餘卡片
                 user_remain_messages[user_id] = remaining_flex_messages[display_card_count:]
 
-                # 構建 Flex Message
+                # Flex Message
                 if remaining_card_count > 10:
                     # 超過 10 張卡片，使用 Carousel Flex Message 加上 See More 按鈕
                     carousel_flex_message = FlexSendMessage(
@@ -3003,7 +3000,7 @@ flashcard/flash card"""
                 if remaining_card_count <= 0:
                     user_states.pop(user_id, None)
             else:
-                # 沒有剩餘卡片，回應使用者
+                # 沒有剩餘卡片，回應使用者（應該不會遇到，以防萬一設定而已）
                 reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
@@ -3077,7 +3074,7 @@ flashcard/flash card"""
                         }
                     )
                 else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個flex message)
+                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個bubble message)
                     carousel_flex_message = FlexSendMessage(
                         alt_text="Carousel Flex Message",
                         contents={
@@ -3129,7 +3126,7 @@ flashcard/flash card"""
                         }
                     )
                 else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個flex message)
+                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個bubble message)
                     carousel_flex_message = FlexSendMessage(
                         alt_text="Carousel Flex Message",
                         contents={
@@ -3285,7 +3282,7 @@ flashcard/flash card"""
                 # 更新剩餘卡片
                 user_remain_messages[user_id] = remaining_flex_messages[display_card_count:]
 
-                # 構建 Flex Message
+                # Flex Message
                 if remaining_card_count > 10:
                     # 超過 10 張卡片，使用 Carousel Flex Message 加上 See More 按鈕
                     carousel_flex_message = FlexSendMessage(
@@ -3311,13 +3308,12 @@ flashcard/flash card"""
                 if remaining_card_count <= 0:
                     user_states.pop(user_id, None)
             else:
-                # 沒有剩餘卡片，回應使用者
+                # 沒有剩餘卡片，回應使用者(應該不會遇到，以防萬一而已)
                 reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
-    # 操作失敗
+    # 操作失敗（部署在render上面，長時間沒使用需要暖機，可能會遇到操作失敗的情況／或是沒有按照步驟可能會出現錯誤）
     else:
-        # 回覆使用者
         reply_text = '卡片盒機器人🤖讀取失敗\n請重新嘗試\n(對不起我是新手機器人，需要一些時間來熟悉工作流程。請依循步驟和指令輸入，如有不便敬請見諒🙏）'
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
