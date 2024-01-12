@@ -2977,21 +2977,22 @@ flashcard/flash card"""
                 user_remain_messages[user_id] = remaining_flex_messages[display_card_count:]
 
                 # 構建 Flex Message
-                if len(display_flex_messages) <= 10:
-                    carousel_flex_message = FlexSendMessage(
-                        alt_text="Carousel Flex Message",
-                        contents={
-                            "type": "carousel",
-                            "contents": display_flex_messages
-                        }
-                    )
-
-                else:
+                if remaining_card_count > 10:
+                    # 超過 10 張卡片，使用 Carousel Flex Message 加上 See More 按鈕
                     carousel_flex_message = FlexSendMessage(
                         alt_text="Carousel Flex Message",
                         contents={
                             "type": "carousel",
                             "contents": display_flex_messages[:9] + [generate_see_more_bubble()]
+                        }
+                    )
+                else:
+                    # 少於等於 10 張卡片，直接使用 Carousel Flex Message
+                    carousel_flex_message = FlexSendMessage(
+                        alt_text="Carousel Flex Message",
+                        contents={
+                            "type": "carousel",
+                            "contents": display_flex_messages
                         }
                     )
 
@@ -3005,6 +3006,7 @@ flashcard/flash card"""
                 # 沒有剩餘卡片，回應使用者
                 reply_text = '已經沒有更多卡片了。'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+
 
 
 
