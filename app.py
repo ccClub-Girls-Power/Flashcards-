@@ -27,7 +27,7 @@ handler = WebhookHandler(os.environ.get('jill_linebot_channel_secret'))
 # Line Notify 設定
 LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
 LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
-LINE_NOTIFY_CALLBACK_URL = 'https://your-callback-url.com/callback'
+LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
 
 # Google Sheets 設定
 gc = pygsheets.authorize(service_file='./client_secret.json')
@@ -61,7 +61,7 @@ def authorize():
     return f'<a href="{authorize_url}">點此進行 Line Notify 授權</a>'
 
 # Line Notify 授權回調處理
-@app.route("/notify_callback")
+@app.route("/callback", methods=['GET'])
 def notify_callback():
     # 獲取授權碼
     code = request.args.get("code")
@@ -85,6 +85,7 @@ def notify_callback():
     worksheet.append_table([access_token])
 
     return "授權成功，已獲得 Access Token"
+
 
 # 訊息傳遞區塊
 ##### 程式編輯都在這個function #####
