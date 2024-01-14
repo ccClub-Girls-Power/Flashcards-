@@ -72,6 +72,10 @@ def save_access_token(access_token):
     # 讀取 Google Sheets 數據作為 DataFrame
     df = worksheet.get_as_df(has_header=True)
 
+    # 如果 DataFrame 未正確取得，可以先創建一個空的 DataFrame
+    if df is None:
+        df = pd.DataFrame(columns=["序號", "token"])
+
     # 創建新的 Access Token 行
     new_row = pd.DataFrame({"序號": [len(df) + 1], "token": [access_token]})
 
