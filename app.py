@@ -60,6 +60,18 @@ def authorize():
     authorize_url = f"https://notify-bot.line.me/oauth/authorize?response_type=code&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&scope=notify&state=2024011101020427"
     return f'<a href="{authorize_url}">點此進行 Line Notify 授權</a>'
 
+# 將 Access Token 存儲到 Google Sheets
+def save_access_token(access_token):
+    spreadsheet = gc.open_by_url(spreadsheet_url)
+    worksheet = spreadsheet.worksheet_by_title(worksheet_name)
+
+    # 先寫入標題行（如果還不存在的話）
+    if worksheet.rows == 0:
+        worksheet.append_table(["Access Token"])
+
+    # 添加 Access Token
+    worksheet.append_table([access_token])
+
 # Line Notify 授權回調處理
 @app.route("/callback", methods=['GET'])
 def notify_callback():
@@ -80,11 +92,10 @@ def notify_callback():
     access_token = token_data.get("access_token")
 
     # 將 Access Token 存儲到 Google Sheets
-    spreadsheet = gc.open_by_url(spreadsheet_url)
-    worksheet = spreadsheet.worksheet_by_title(worksheet_name)
-    worksheet.append_table([access_token])
+    save_access_token(access_token)
 
     return "授權成功，已獲得 Access Token"
+
 
 
 # 訊息傳遞區塊
