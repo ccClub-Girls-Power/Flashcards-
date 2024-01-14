@@ -64,49 +64,54 @@ gc = pygsheets.authorize(service_file='./client_secret.json')
 spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOgt3Aek2x3xwE1wtPPvuEIAE/edit?usp=sharing'
 worksheet_name = 'Token'
 
-# 設定 Line Notify 授權連結
-@app.route("/authorize")
-def authorize():
-    authorize_url = f"https://notify-bot.line.me/oauth/authorize?response_type=code&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&scope=notify&state=2024011101020427"
-    return f'<a href="{authorize_url}">點此進行 Line Notify 授權</a>'
-
 # 將 Access Token 存儲到 Google Sheets
 def save_access_token(access_token):
     spreadsheet = gc.open_by_url(spreadsheet_url)
     worksheet = spreadsheet.worksheet_by_title(worksheet_name)
 
-    # 先寫入標題行（如果還不存在的話）
-    if worksheet.rows == 0:
-        worksheet.append_table(["Access Token"])
+    # 讀取 Google Sheets 數據作為 DataFrame
+    df = worksheet.get_as_df(has_header=True)
 
-    # 添加 Access Token
-    worksheet.append_table([access_token])
+    # 創建新的 Access Token 行
+    new_row = pd.DataFrame({"序號": [len(df) + 1], "token": [access_token]})
+
+    # 將新行添加到 DataFrame
+    df = df.append(new_row, ignore_index=True)
+
+    # 將 DataFrame 寫回 Google Sheets
+    worksheet.set_dataframe(df, start='A1', nan='')
 
 # 從 Google Sheets 讀取 Access Token
 def get_access_token():
     spreadsheet = gc.open_by_url(spreadsheet_url)
     worksheet = spreadsheet.worksheet_by_title(worksheet_name)
 
-    # 如果有標題行，取得最後一行的 Access Token
-    if worksheet.rows > 1:
-        access_token = worksheet.get_all_records()[worksheet.rows - 1]["Access Token"]
-        return access_token
+    # 讀取 Google Sheets 數據作為 DataFrame
+    df = worksheet.get_as_df(has_header=True)
+
+    # 返回最後一行的 Access Token
+    if not df.empty:
+        return df['token'].iloc[-1]
     else:
         return None
 
-# 使用獲得的 Access Token 向使用者發送 Line Notify 訊息
+# 發送 Line Notify 訊息
 def send_notify(access_token, message):
+    url = 'https://notify-api.line.me/api/notify'
     headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer ' + access_token,
     }
-
     data = {
         'message': message,
     }
-
-    response = requests.post('https://notify-api.line.me/api/notify', headers=headers, data=data)
+    response = requests.post(url, headers=headers, data=data)
     return response
+
+# 設定 Line Notify 授權連結
+@app.route("/authorize")
+def authorize():
+    authorize_url = f"https://notify-bot.line.me/oauth/authorize?response_type=code&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&scope=notify&state=2024011101020427"
+    return f'<a href="{authorize_url}">點此進行 Line Notify 授權</a>'
 
 # Line Notify 授權回調處理
 @app.route("/callback", methods=['GET'])
@@ -138,9 +143,6 @@ def notify_callback():
         send_notify(user_access_token, "歡迎與卡片盒機器人連結！")
 
     return "授權成功，已獲得 Access Token"
-
-
-
 
 
 # 訊息傳遞區塊
