@@ -105,7 +105,7 @@ def send_notify(access_token, message):
         'message': message,
     }
 
-    response = requests.post('https://notify-api.line.me/api/notify', headers=headers, data=data, method='post')
+    response = requests.post('https://notify-api.line.me/api/notify', headers=headers, data=data)
     return response
 
 # Line Notify 授權回調處理
