@@ -54,6 +54,16 @@ def linebot_callback():
 
 
 ####### LINE Notify 區塊#######
+# Line Notify 設定
+LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
+LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
+LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
+
+# Google Sheets 設定
+gc = pygsheets.authorize(service_file='./client_secret.json')
+spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOgt3Aek2x3xwE1wtPPvuEIAE/edit?usp=sharing'
+worksheet_name = 'Token'
+
 # 設定 Line Notify 授權連結
 @app.route("/authorize")
 def authorize():
@@ -71,6 +81,32 @@ def save_access_token(access_token):
 
     # 添加 Access Token
     worksheet.append_table([access_token])
+
+# 從 Google Sheets 讀取 Access Token
+def get_access_token():
+    spreadsheet = gc.open_by_url(spreadsheet_url)
+    worksheet = spreadsheet.worksheet_by_title(worksheet_name)
+
+    # 如果有標題行，取得最後一行的 Access Token
+    if worksheet.rows > 1:
+        access_token = worksheet.get_all_records()[worksheet.rows - 1]["Access Token"]
+        return access_token
+    else:
+        return None
+
+# 使用獲得的 Access Token 向使用者發送 Line Notify 訊息
+def send_notify(access_token, message):
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+
+    data = {
+        'message': message,
+    }
+
+    response = requests.post('https://notify-api.line.me/api/notify', headers=headers, data=data, method='post')
+    return response
 
 # Line Notify 授權回調處理
 @app.route("/callback", methods=['GET'])
@@ -94,7 +130,16 @@ def notify_callback():
     # 將 Access Token 存儲到 Google Sheets
     save_access_token(access_token)
 
+    # 取得最後一行的 Access Token
+    user_access_token = get_access_token()
+
+    if user_access_token:
+        # 使用獲得的 Access Token 向使用者發送歡迎訊息
+        send_notify(user_access_token, "歡迎與卡片盒機器人連結！")
+
     return "授權成功，已獲得 Access Token"
+
+
 
 
 
