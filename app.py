@@ -65,28 +65,32 @@ spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOg
 worksheet_name = 'Token'
 
 # 將 Access Token 存儲到 Google Sheets
+# 將 Access Token 存儲到 Google Sheets
 def save_access_token(access_token):
-    gc = pygsheets.authorize(service_file='./client_secret.json')
+    gc = pygsheets.authorize(service_file='./client_secret.json')  # 添加這一行
     spreadsheet = gc.open_by_url(spreadsheet_url)
     worksheet = spreadsheet.worksheet_by_title(worksheet_name)
 
-    # 讀取工作表內容並轉換為 Pandas DataFrame
-    df = worksheet.get_as_df()
+    try:
+        # 讀取工作表內容並轉換為 Pandas DataFrame
+        df = worksheet.get_as_df()
 
-    # 獲取 DataFrame 的形狀
-    num_rows = df.shape[0]
+        if df is None:
+            print("DataFrame is None")
+            return
 
-    # 新數據追加到下一行
-    start_row = num_rows + 1
+        # 獲取 DataFrame 的形狀
+        num_rows = df.shape[0]
 
-    # 構建新的 Access Token 行
-    new_row = pd.DataFrame({"序號": [start_row], "token": [access_token]})
+        # 新數據追加到下一行
+        df.loc[num_rows + 1] = [num_rows + 1, access_token]
 
-    # 將新行添加到 DataFrame
-    df = df.append(new_row, ignore_index=True)
+        # 將 DataFrame 寫回 Google Sheets
+        worksheet.set_dataframe(df, start='A1', nan='')
 
-    # 將 DataFrame 寫回 Google Sheets
-    worksheet.set_dataframe(df, start='A1', nan='')
+        print("Access Token saved successfully.")
+    except Exception as e:
+        print(f"Error saving Access Token: {e}")
 
 
 # 從 Google Sheets 讀取 Access Token
