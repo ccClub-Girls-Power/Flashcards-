@@ -24,9 +24,19 @@ line_bot_api = LineBotApi(os.environ.get('jill_linebot_api'))
 # LineBot Channel Secret（為了隱密性，用環境變數）
 handler = WebhookHandler(os.environ.get('jill_linebot_channel_secret'))
 
+# Line Notify 設定
+LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
+LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
+LINE_NOTIFY_CALLBACK_URL = 'https://your-callback-url.com/callback'
+
+# Google Sheets 設定
+gc = pygsheets.authorize(service_file='./client_secret.json')
+spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOgt3Aek2x3xwE1wtPPvuEIAE/edit?usp=sharing'
+worksheet_name = 'Token'
+
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
-def callback():
+def linebot_callback():
     # get X-Line-Signature header value
     signature = request.headers['X-Line-Signature']
 
@@ -44,77 +54,37 @@ def callback():
 
 
 ####### LINE Notify 區塊#######
-def send_notification(access_token, message):
-    line_notify_url = "https://notify-api.line.me/api/notify"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-    data = {"message": message}
-    response = requests.post(line_notify_url, headers=headers, data=data)
-    return response.json()
+# 設定 Line Notify 授權連結
+@app.route("/authorize")
+def authorize():
+    authorize_url = f"https://notify-bot.line.me/oauth/authorize?response_type=code&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&scope=notify&state=2024011101020427"
+    return f'<a href="{authorize_url}">點此進行 Line Notify 授權</a>'
 
+# Line Notify 授權回調處理
+@app.route("/notify_callback")
+def notify_callback():
+    # 獲取授權碼
+    code = request.args.get("code")
 
-# 取得 Line Notify 存取令牌的函式
-def get_access_token(client_id, client_secret, code, redirect_uri):
-    line_token_url = "https://notify-bot.line.me/oauth/token"
+    # 用授權碼獲取 Access Token
+    token_url = "https://notify-bot.line.me/oauth/token"
     data = {
         "grant_type": "authorization_code",
         "code": code,
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "redirect_uri": redirect_uri
+        "client_id": LINE_NOTIFY_CLIENT_ID,
+        "client_secret": LINE_NOTIFY_CLIENT_SECRET,
+        "redirect_uri": LINE_NOTIFY_CALLBACK_URL,
     }
-    response = requests.post(line_token_url, data=data)
-    return response.json()
+    response = requests.post(token_url, data=data)
+    token_data = response.json()
+    access_token = token_data.get("access_token")
 
+    # 將 Access Token 存儲到 Google Sheets
+    spreadsheet = gc.open_by_url(spreadsheet_url)
+    worksheet = spreadsheet.worksheet_by_title(worksheet_name)
+    worksheet.append_table([access_token])
 
-# Line Notify 設定
-LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
-LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
-LINE_NOTIFY_CALLBACK_URL = 'https://linebot-c6pm.onrender.com/callback'
-
-
-# Line Notify 授權路由（使用者可以透過這個網頁取得我們的Notify授權通知)
-@app.route('/notify_auth', methods=['GET'])
-def notify_auth():
-    # 隨機生成的安全碼
-    state = '2024011101020427'
-
-    # 將 state 存儲在 session 中，以便在回調時進行驗證
-    session['state'] = state
-
-    # 重定向至 Line Notify 授權頁面，包含 state 參數
-    return redirect(
-        f'https://notify-bot.line.me/oauth/authorize?'
-        f'response_type=code&scope=notify&response_mode=form_post'
-        f'&client_id={LINE_NOTIFY_CLIENT_ID}&redirect_uri={LINE_NOTIFY_CALLBACK_URL}&state={state}'
-    )
-
-
-# Line Notify 授權後的回調路由
-@app.route('/callback', methods=['POST'])
-def notify_callback():
-    # 獲取從 Line Notify 返回的數據
-    code = request.form['code']
-    state = request.form['state']
-
-    # 驗證 state，確保它與存儲在 session 中的值匹配，防止 CSRF 攻擊
-    if state != session.get('state'):
-        return '無效的驗證碼。請再試一次。'
-
-    # 使用 code 向 Line Notify 取得存取權杖
-    access_token_data = get_access_token(LINE_NOTIFY_CLIENT_ID, LINE_NOTIFY_CLIENT_SECRET, code,
-                                         LINE_NOTIFY_CALLBACK_URL)
-
-    # 提取存取權杖
-    access_token = access_token_data.get("access_token")
-
-    # 發送成功授權的消息
-    send_notification(access_token, "與「卡片機器人」連動成功🎉現在可以收到卡片盒複習通知囉")
-
-    return '卡片盒機器人授權成功'
-
+    return "授權成功，已獲得 Access Token"
 
 # 訊息傳遞區塊
 ##### 程式編輯都在這個function #####
@@ -156,10 +126,10 @@ def save_card_content_to_sheet(current_time, sheet_title, content_list, service_
         # 將字典轉換為 DataFrame
         df = pd.DataFrame(data)
         # 將 DataFrame 寫入 Google Sheets
-        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行開始寫入
+        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行的第一列開始寫入
         return True  # 儲存成功，返回 True
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -169,21 +139,21 @@ def insert_card_content_to_sheet(current_time, deck_name, card_contents, service
         # 開啟 Google Sheets
         gc = pygsheets.authorize(service_file=service_file_path)
         spreadsheet = gc.open_by_url(spreadsheet_url)
-        # 選擇對應的工作表
+        # 選擇對應的工作表，如果不存在會自動建立
         worksheet = spreadsheet.worksheet_by_title(deck_name)
-        # 讀取工作表內容並轉換為 DataFrame
+        # 讀取工作表內容並轉換為 Pandas DataFrame
         df = worksheet.get_as_df()
-        # 獲取 DataFrame 的形狀（獲取現有行數）
+        # 獲取 DataFrame 的形狀
         num_rows = df.shape[0]
         # 新數據追加到下一行
         start_row = num_rows + 1
-        # 定義要插入的資料
+        # 定義要插入的資料，包含新增時間
         data = [current_time, card_contents[0], card_contents[1]]
         # 在指定的行數插入新數據
         worksheet.insert_rows(start_row, values=[data])
         return start_row
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -200,10 +170,10 @@ def save_word_card_content_to_sheet(current_time, sheet_title, content_list, ser
         # 將字典轉換為 DataFrame
         df = pd.DataFrame(data)
         # 將 DataFrame 寫入 Google Sheets
-        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行開始寫入
+        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行的第一列開始寫入
         return True  # 儲存成功的情況下返回 True
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -217,17 +187,17 @@ def insert_word_card_content_to_sheet(current_time, deck_name, card_contents, se
         worksheet = spreadsheet.worksheet_by_title(deck_name)
         # 讀取工作表內容並轉換為 Pandas DataFrame
         df = worksheet.get_as_df()
-        # 獲取 DataFrame 的形狀（獲取現有行數）
+        # 獲取 DataFrame 的形狀
         num_rows = df.shape[0]
         # 新數據追加到下一行
         start_row = num_rows + 1
-        # 定義要插入的資料
+        # 定義要插入的資料，包含新增時間
         data = [current_time] + card_contents
         # 在指定的行數插入新數據
         worksheet.insert_rows(start_row, values=[data])
         return start_row
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -297,7 +267,7 @@ def lookup_word(word):
     return pos_list, example_list, us_pronunciation_url, uk_pronunciation_url
 
 
-# 函數：儲存字典卡片內容至工作表
+# 函數：儲存字典卡片內容至工作表（建立新工作表+插入標題欄）
 def searching_word_to_sheet(current_time, service_file_path, spreadsheet_url, sheet_title, word, pos_list, example_list,
                             us_pronunciation_url, uk_pronunciation_url):
     try:
@@ -316,10 +286,10 @@ def searching_word_to_sheet(current_time, service_file_path, spreadsheet_url, sh
             'UK Pronunciation': [uk_pronunciation_url] if uk_pronunciation_url else ['']
         })
         # 插入資料到 Google Sheets
-        worksheet.set_dataframe(df, start='A1')  # 將 DataFrame 從第一行開始寫入
+        worksheet.set_dataframe(df, start='A1')  # 從 A1 開始插入 DataFrame 到工作表
         return True  # 儲存成功的情況下返回 True
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -334,7 +304,7 @@ def searching_word_to_existing_sheet(current_time, service_file_path, spreadshee
         worksheet = spreadsheet.worksheet_by_title(sheet_title)
         # 讀取工作表內容並轉換為 Pandas DataFrame
         df = worksheet.get_as_df()
-        # 獲取 DataFrame 的形狀（獲取現有行數）
+        # 獲取 DataFrame 的形狀
         num_rows = df.shape[0]
         # 新數據追加到下一行
         start_row = num_rows + 1
@@ -349,7 +319,7 @@ def searching_word_to_existing_sheet(current_time, service_file_path, spreadshee
         return start_row
 
     except Exception as e:
-        # 如果儲存失敗，引發自定義的 SaveCardError 錯誤訊息
+        # 如果儲存失敗，引發自定義的 SaveCardError 並帶上錯誤訊息
         raise SaveCardError("卡片儲存失敗，請稍後再試。")
 
 
@@ -357,11 +327,13 @@ def searching_word_to_existing_sheet(current_time, service_file_path, spreadshee
 def get_user_worksheets(user_id, spreadsheet_urls, service_file_path):
     # 設定 Google Sheets API 的授權檔案（輸入金鑰）
     gc = pygsheets.authorize(service_file=service_file_path)
-    # 建立一個字典用來儲存各個 spreadsheet 對應的 user_worksheets
+    # 建立一個字典用來存儲各個 spreadsheet 中對應的 user_worksheets
     user_worksheets_dict = {}
+
     # 逐一處理每個 spreadsheet
     for spreadsheet_url in spreadsheet_urls:
         spreadsheet = gc.open_by_url(spreadsheet_url)
+
         # 找到使用者對應的工作表
         user_worksheets = [worksheet.title.split('_')[1] for worksheet in spreadsheet.worksheets() if
                            user_id in worksheet.title]
@@ -370,7 +342,7 @@ def get_user_worksheets(user_id, spreadsheet_urls, service_file_path):
     return user_worksheets_dict
 
 
-# 函數：反查卡片盒類型(三個卡片盒對應三個不同的資料庫)
+# 函數：反查卡片盒類型(工作表對照的資料庫)
 def find_spreadsheet_by_worksheet(worksheet_name, spreadsheet_dict):
     for spreadsheet, worksheets in spreadsheet_dict.items():
         if worksheet_name in worksheets:
@@ -383,7 +355,7 @@ def process_flashcard_deck_v1(all_data, column_names):
 
     # 將數據分配到相應的列表中
     for row in all_data[1:]:
-        if any(row):  
+        if any(row):  # 檢查行是否包含有效數據
             current_time_list.append(row[column_names.index('新增時間')])
             word_list.append(row[column_names.index('單字')])
             pos_list.append(row[column_names.index('詞性')])
@@ -400,7 +372,7 @@ def process_flashcard_deck_v2(all_data, column_names):
 
     # 將數據分配到相應的列表中
     for row in all_data[1:]:
-        if any(row):  
+        if any(row):  # 檢查行是否包含有效數據
             current_time_list.append(row[column_names.index('新增時間')])
             front_list.append(row[column_names.index('卡片正面')])
             back_list.append(row[column_names.index('卡片背面')])
@@ -415,7 +387,7 @@ def process_flashcard_deck_v3(all_data, column_names):
 
     # 將數據分配到相應的列表中
     for row in all_data[1:]:
-        if any(row): 
+        if any(row):  # 檢查行是否包含有效數據
             current_time_list.append(row[column_names.index('新增時間')])
             word_list.append(row[column_names.index('單字')])
             pos_list.append(row[column_names.index('詞性')])
@@ -996,7 +968,7 @@ def review_dic_flex_message(current_time, word_name):
     }
 
 
-# 使用者狀態、各式儲存用的字典
+# 使用者狀態、卡片盒字典、front.back_input
 user_states = {}
 user_decks = {}
 user_word_decks = {}
@@ -1085,7 +1057,7 @@ def handle_message(event):
         # 回覆訊息
         line_bot_api.reply_message(event.reply_token, [text_message, bubble_message])
         user_states[user_id] = 'waiting_for_choosing_type'
-        
+
     ######閃卡卡片盒######
     elif user_id in user_states and user_states[
         user_id] == 'waiting_for_choosing_type' and user_input == '我要建立閃卡':
@@ -1157,7 +1129,7 @@ def handle_message(event):
             )
             line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=reply_text), confirm_message])
             user_decks[user_id] = deck_name  # 儲存使用者選擇的卡片盒
-            user_states.pop(user_id, None) # 清除用戶狀態
+            user_states.pop(user_id, None)
             user_states[user_id] = 'waiting_for_confirm_existing_deck'
         else:
             # 提示使用者確認是否建立新卡片盒
@@ -1230,7 +1202,7 @@ def handle_message(event):
 什麼是卡片盒機器人？
 Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 
-            # 兩條回覆訊息
+            # 創建兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -1426,7 +1398,7 @@ Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 什麼是卡片盒機器人？
 Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 
-            # 兩條回覆訊息
+            # 創建兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -1986,7 +1958,7 @@ noun
 無
 flashcard/flash card"""
 
-            # 兩條回覆訊息
+            # 創建兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -2197,6 +2169,7 @@ flashcard/flash card"""
     """查單字功能"""
     if '查單字' in user_input:
         reply_text = '請輸入想要查詢的英文單字'
+        # 回覆使用者
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
         user_states[user_id] = 'waiting_for_searching_word'
@@ -2974,7 +2947,7 @@ flashcard/flash card"""
                 # 更新剩餘卡片
                 user_remain_messages[user_id] = remaining_flex_messages[display_card_count:]
 
-                # Flex Message
+                # 構建 Flex Message
                 if remaining_card_count > 10:
                     # 超過 10 張卡片，使用 Carousel Flex Message 加上 See More 按鈕
                     carousel_flex_message = FlexSendMessage(
@@ -3000,7 +2973,7 @@ flashcard/flash card"""
                 if remaining_card_count <= 0:
                     user_states.pop(user_id, None)
             else:
-                # 沒有剩餘卡片，回應使用者（應該不會遇到，以防萬一設定而已）
+                # 沒有剩餘卡片，回應使用者
                 reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
@@ -3074,7 +3047,7 @@ flashcard/flash card"""
                         }
                     )
                 else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個bubble message)
+                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個flex message)
                     carousel_flex_message = FlexSendMessage(
                         alt_text="Carousel Flex Message",
                         contents={
@@ -3126,7 +3099,7 @@ flashcard/flash card"""
                         }
                     )
                 else:
-                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個bubble message)
+                    # 多於 10 條 Bubble Messages，使用 Carousel Flex Message 加上 See More 按鈕（因為carousel最多只能顯示10個flex message)
                     carousel_flex_message = FlexSendMessage(
                         alt_text="Carousel Flex Message",
                         contents={
@@ -3268,7 +3241,7 @@ flashcard/flash card"""
                         )
                 line_bot_api.reply_message(event.reply_token, send_message_list)
 
-        #See more
+        # See more
         if "See more cards" in user_input:
             remaining_flex_messages = user_remain_messages.get(user_id, [])
             # 計算剩餘卡片數
@@ -3282,7 +3255,7 @@ flashcard/flash card"""
                 # 更新剩餘卡片
                 user_remain_messages[user_id] = remaining_flex_messages[display_card_count:]
 
-                # Flex Message
+                # 構建 Flex Message
                 if remaining_card_count > 10:
                     # 超過 10 張卡片，使用 Carousel Flex Message 加上 See More 按鈕
                     carousel_flex_message = FlexSendMessage(
@@ -3308,12 +3281,13 @@ flashcard/flash card"""
                 if remaining_card_count <= 0:
                     user_states.pop(user_id, None)
             else:
-                # 沒有剩餘卡片，回應使用者(應該不會遇到，以防萬一而已)
+                # 沒有剩餘卡片，回應使用者
                 reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
-    # 操作失敗（部署在render上面，長時間沒使用需要暖機，可能會遇到操作失敗的情況／或是沒有按照步驟可能會出現錯誤）
+    # 操作失敗
     else:
+        # 回覆使用者
         reply_text = '卡片盒機器人🤖讀取失敗\n請重新嘗試\n(對不起我是新手機器人，需要一些時間來熟悉工作流程。請依循步驟和指令輸入，如有不便敬請見諒🙏）'
         message = TextSendMessage(text=reply_text)
         line_bot_api.reply_message(event.reply_token, message)
