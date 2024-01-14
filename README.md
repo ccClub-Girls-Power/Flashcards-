@@ -26,5 +26,5 @@ Users can look up in the dictionary by entering the English words in our linebot
 使用者可以查看三種類型的卡片所有已分類建立過的群組，以達到複習的效果。
 This function allows users to view all categorized groups of three types of cards, created for users to review and study.
 ### App Demo
-[![Watch the video][(https://img.youtube.com/vi/w29KAu-qR1I/maxresdefault.jpg)](https://youtube.com/watch?v=w29KAu-qR1I "卡片盒機器人App Demo")
+[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/w29KAu-qR1I.jpg)](https://youtu.be/w29KAu-qR1I)
 
