@@ -24,16 +24,6 @@ line_bot_api = LineBotApi(os.environ.get('jill_linebot_api'))
 # LineBot Channel Secret（為了隱密性，用環境變數）
 handler = WebhookHandler(os.environ.get('jill_linebot_channel_secret'))
 
-# Line Notify 設定
-LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
-LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
-LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
-
-# Google Sheets 設定
-gc = pygsheets.authorize(service_file='./client_secret.json')
-spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOgt3Aek2x3xwE1wtPPvuEIAE/edit?usp=sharing'
-worksheet_name = 'Token'
-
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
 def linebot_callback():
@@ -55,19 +45,18 @@ def linebot_callback():
 
 ####### LINE Notify 區塊#######
 # Line Notify 設定
-LINE_NOTIFY_CLIENT_ID = 'gPfD2ADeK9SjnOogikW1XJ'
-LINE_NOTIFY_CLIENT_SECRET = '2GRW0UNN7UxePnmYvC7pSM4Zk3xbOsS8bNljiHnSqc0'
+LINE_NOTIFY_CLIENT_ID = os.environ.get('line_notify_client_id')
+LINE_NOTIFY_CLIENT_SECRET = os.environ.get('line_notify_client_secret')
 LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
 
 # Google Sheets 設定
-
 spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOgt3Aek2x3xwE1wtPPvuEIAE/edit?usp=sharing'
 worksheet_name = 'Token'
 
 # 將 Access Token 存儲到 Google Sheets
 # 將 Access Token 存儲到 Google Sheets
 def save_access_token(access_token):
-    gc = pygsheets.authorize(service_file='./client_secret.json')  # 添加這一行
+    gc = pygsheets.authorize(service_file='./client_secret.json')
     spreadsheet = gc.open_by_url(spreadsheet_url)
     worksheet = spreadsheet.worksheet_by_title(worksheet_name)
 
@@ -95,6 +84,7 @@ def save_access_token(access_token):
 
 # 從 Google Sheets 讀取 Access Token
 def get_access_token():
+    gc = pygsheets.authorize(service_file='./client_secret.json')
     spreadsheet = gc.open_by_url(spreadsheet_url)
     worksheet = spreadsheet.worksheet_by_title(worksheet_name)
 
