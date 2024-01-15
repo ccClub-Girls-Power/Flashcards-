@@ -152,7 +152,7 @@ def notify_callback():
 
     if user_access_token:
         # 使用獲得的 Access Token 向使用者發送歡迎訊息
-        send_notify(user_access_token, "歡迎與卡片盒機器人連結！")
+        send_notify(user_access_token, "歡迎加入卡片盒機器人的Line Notify🎉\n我們將會定時發送訊息，提醒您複習卡片盒哦✨")
 
     return "授權成功，已獲得 Access Token"
 
