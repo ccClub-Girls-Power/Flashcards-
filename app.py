@@ -51,7 +51,7 @@ LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
 
 # Google Sheets 設定
 spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOgt3Aek2x3xwE1wtPPvuEIAE/edit?usp=sharing'
-worksheet_name = '使用者token'
+worksheet_name = 'Token'
 
 # 將 Access Token 儲存到 Google Sheets
 def save_access_token(access_token):
