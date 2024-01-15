@@ -30,8 +30,9 @@ This function allows users to view all categorized groups of three types of card
 ### Setup
 0. Download [LINE](https://line.me/en/download) in your mobile and create an account for yourself.
 1. Add official ID `@170mpjik` or scan the QRcode below to add "Flashcards Linebot" to your friend list.
-![Flashcards Linebot](https://img.onl/7pgAnZ)
 2. You are ready for the "Flashcards Linebot".
+
+![Flashcards Linebot](https://img.onl/LttR9V)
 
 
 
