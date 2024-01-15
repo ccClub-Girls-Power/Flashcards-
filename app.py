@@ -53,8 +53,7 @@ LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
 spreadsheet_url = 'https://docs.google.com/spreadsheets/d/1yaDxp2j0NNgW-TW0erdOgt3Aek2x3xwE1wtPPvuEIAE/edit?usp=sharing'
 worksheet_name = '使用者token'
 
-# 將 Access Token 存儲到 Google Sheets
-# 將 Access Token 存儲到 Google Sheets
+# 將 Access Token 儲存到 Google Sheets
 def save_access_token(access_token):
     gc = pygsheets.authorize(service_file='./client_secret.json')
     spreadsheet = gc.open_by_url(spreadsheet_url)
@@ -134,7 +133,7 @@ def notify_callback():
     token_data = response.json()
     access_token = token_data.get("access_token")
 
-    # 將 Access Token 存儲到 Google Sheets
+    # 將 Access Token 儲存到 Google Sheets
     save_access_token(access_token)
 
     # 取得最後一行的 Access Token
@@ -144,7 +143,7 @@ def notify_callback():
         # 使用獲得的 Access Token 向使用者發送歡迎訊息
         send_notify(user_access_token, "歡迎加入卡片盒機器人的Line Notify🎉\n我們將會定時發送訊息，提醒您複習卡片盒哦✨")
 
-    return "授權成功，已獲得 Access Token"
+    return "授權成功🎉已獲得 Access Token"
 
 
 # 訊息傳遞區塊
@@ -1263,7 +1262,7 @@ def handle_message(event):
 什麼是卡片盒機器人？
 Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 
-            # 創建兩條回覆訊息
+            # 兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -1459,7 +1458,7 @@ Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 什麼是卡片盒機器人？
 Flashcards卡片盒機器人是一款幫助學習的Line帳號！"""
 
-            # 創建兩條回覆訊息
+            # 兩條回覆訊息
             message1 = TextSendMessage(text=reply_text)
             message2 = TextSendMessage(text=reply_text2)
 
@@ -3034,7 +3033,7 @@ flashcard/flash card"""
                 if remaining_card_count <= 0:
                     user_states.pop(user_id, None)
             else:
-                # 沒有剩餘卡片，回應使用者
+                # 沒有剩餘卡片，回應使用者（應該不會有這種情況，但以防萬一）
                 reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
@@ -3267,7 +3266,7 @@ flashcard/flash card"""
                 flashcard = flashcard_flex_message(user_decks_name[user_id], current_time, front_list, back_list)
                 line_bot_api.reply_message(event.reply_token,
                                            FlexSendMessage(alt_text="Card Information", contents=flashcard))
-        #複習字典卡
+        # 複習字典卡
         if "查看字典單字" in user_input:
             check_dic_word_name = user_input.split()[1]
             if check_dic_word_name in data_lists_list.get(user_id, [[], [], [], [], [], [], []])[1]:
@@ -3342,7 +3341,7 @@ flashcard/flash card"""
                 if remaining_card_count <= 0:
                     user_states.pop(user_id, None)
             else:
-                # 沒有剩餘卡片，回應使用者
+                # 沒有剩餘卡片，回應使用者（應該不會有這種情況，但以防萬一）
                 reply_text = '已經沒有更多卡片了'
                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
