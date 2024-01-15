@@ -146,43 +146,6 @@ def notify_callback():
     return "授權成功🎉已獲得 Access Token"
 
 
-# 讀取所有的 Access Token
-def get_all_access_tokens():
-    gc = pygsheets.authorize(service_file='./client_secret.json')
-    spreadsheet = gc.open_by_url(spreadsheet_url)
-    worksheet = spreadsheet.worksheet_by_title(worksheet_name)
-
-    # 讀取 Google Sheets 數據作為 DataFrame
-    df = worksheet.get_as_df(has_header=True)
-
-    # 返回所有 Access Tokens
-    if not df.empty:
-        return df['使用者token'].tolist()
-    else:
-        return []
-
-# 一次性向所有使用者發送提醒訊息
-def send_notify_to_all(message):
-    # 取得所有 Access Tokens
-    all_access_tokens = get_all_access_tokens()
-
-    # 逐一向每個使用者發送訊息
-    for access_token in all_access_tokens:
-        send_notify(access_token, message)
-
-@app.route("/send_reminder")
-def send_reminder():
-    # 要發送的提醒訊息
-    reminder_message = "今天也要記得打開卡片盒機器人🤖複習卡片喔！"
-
-    # 一次性向所有使用者發送提醒訊息
-    send_notify_to_all(reminder_message)
-
-    return "提醒訊息已發送給所有使用者"
-
-
-
-
 # 訊息傳遞區塊
 ##### 程式編輯都在這個function #####
 # 函數: 取得所有工作表
