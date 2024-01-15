@@ -10,7 +10,7 @@ LINE是一款在台灣使用率高達90%的通訊軟體，基於LINE使用者的
 LINE is a communication app with more than 90% usage rate in Taiwan. Based on the widespread usage of LINE, we have developed a "Flashcards Linebot" that allows users to take digital learning notes without downloading additional applications.
 Users can simply input the learning content they want to create, and the linebot will automatically organize the learning card format for you without the need to spend time designing cards. Additionally, we have developed a reminder function to ensure that users can achieve effective learning through regular review.
 ## Architecture
-![Flashcards Architecture](https://img.onl/iXCbqt)
+![Flashcards Architecture](https://img.onl/gGXKZr)
 ## App Demo and Features
 ### Features
 * 自建卡片(Creat study cards):
