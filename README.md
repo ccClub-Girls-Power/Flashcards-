@@ -28,7 +28,7 @@ This function allows users to view all categorized groups of three types of card
 ### App Demo
 [![Watch the video](https://img.youtube.com/vi/w29KAu-qR1I/0.jpg)](https://youtu.be/w29KAu-qR1I)
 ### Setup
-0. 在手機上下載 LINE，並建立您的個人帳號。\\Download [LINE](https://line.me/en/download) in your mobile and create an account for yourself.
+0. 在手機上下載 LINE，並建立您的個人帳號。<br>Download [LINE](https://line.me/en/download) in your mobile and create an account for yourself.
 1. 可直接搜尋Line ID: @170mpjik 或是掃描QR code加入卡片盒機器人好友。\\Add official ID `@170mpjik` or scan the QRcode below to add "Flashcards Linebot" to your friend list.
 2. 即可開始體驗卡片盒機器人啦！\\You are ready for the "Flashcards Linebot".
 
