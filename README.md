@@ -28,7 +28,8 @@ This function allows users to view all categorized groups of three types of card
 ### App Demo
 [![Watch the video](https://img.youtube.com/vi/w29KAu-qR1I/0.jpg)](https://youtu.be/w29KAu-qR1I)
 ### Setup
-0. Download [LINE](https://line.me/en/download) in your mobile and create an account for yourself.
+0. 下載LINE至手機，並建立自己的帳號。
+   Download [LINE](https://line.me/en/download) in your mobile and create an account for yourself.
 1. Add official ID `@170mpjik` or scan the QRcode below to add "Flashcards Linebot" to your friend list.
 2. You are ready for the "Flashcards Linebot".
 
