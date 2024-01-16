@@ -44,7 +44,7 @@ def linebot_callback():
 
 
 ####### LINE Notify 區塊#######
-# Line Notify 設定
+# Line Notify 設定（為了隱密性，用環境變數）
 LINE_NOTIFY_CLIENT_ID = os.environ.get('line_notify_client_id')
 LINE_NOTIFY_CLIENT_SECRET = os.environ.get('line_notify_client_secret')
 LINE_NOTIFY_CALLBACK_URL = 'https://linebot-224.onrender.com/callback'
